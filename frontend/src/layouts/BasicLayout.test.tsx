@@ -1,9 +1,10 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import BasicLayout from './BasicLayout';
 import { ConfigProvider } from 'antd';
 import { geekNotionTheme } from '@/theme/geek-notion';
+import { useUserStore } from '@/store/useUserStore';
 
 // Mock matchMedia for Ant Design
 Object.defineProperty(window, 'matchMedia', {
@@ -21,6 +22,18 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 describe('BasicLayout Component', () => {
+  beforeEach(() => {
+    useUserStore.setState({
+      user: { userId: 'dev-user', username: 'admin', email: '', role: 'admin' },
+      token: 'dev-token',
+      isAuthenticated: true,
+    });
+  });
+
+  afterEach(() => {
+    useUserStore.getState().logout();
+  });
+
   it('should render side menu with correct theme style', () => {
     render(
       <ConfigProvider theme={geekNotionTheme}>
@@ -34,9 +47,8 @@ describe('BasicLayout Component', () => {
     const sider = document.querySelector('aside');
     expect(sider).toBeInTheDocument();
     
-    // 验证侧边栏背景色是否符合 Geek+Notion 主题 (米色 #F7F7F5)
-    // 注意：AntD 会将 Token 转换为 CSS 变量或具体样式，这里主要验证结构
-    expect(sider).toHaveClass('ant-layout-sider-light');
+    // 当前布局使用 Notion 风格 Tailwind 类，而不是 Ant Design Layout Sider。
+    expect(sider).toHaveClass('bg-background-secondary');
   });
 
   it('should render navigation items', () => {
@@ -49,7 +61,7 @@ describe('BasicLayout Component', () => {
     );
     
     expect(screen.getByText('任务大厅')).toBeInTheDocument();
-    expect(screen.getByText('工作台')).toBeInTheDocument();
+    expect(screen.getAllByText('工作台').length).toBeGreaterThan(0);
     expect(screen.getByText('个人中心')).toBeInTheDocument();
   });
 });

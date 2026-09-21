@@ -26,11 +26,10 @@ class LoginRequest(BaseModel):
         example="john_doe"
     )
 
-    password: str = Field(
-        ...,
-        min_length=1,
-        description="密码",
-        example="MyPassword123"
+    password: Optional[str] = Field(
+        default="",
+        description="密码；本地开发免密模式可留空",
+        example=""
     )
 
     source: Optional[str] = Field(
@@ -43,7 +42,7 @@ class LoginRequest(BaseModel):
         json_schema_extra = {
             "example": {
                 "username": "john_doe",
-                "password": "MyPassword123",
+                "password": "",
                 "source": "web"
             }
         }
@@ -67,11 +66,11 @@ class RegisterRequest(BaseModel):
         example="john@example.com"
     )
 
-    password: str = Field(
-        ...,
+    password: Optional[str] = Field(
+        default=None,
         min_length=8,
-        description="密码（至少8位，包含大小写字母和数字）",
-        example="MyPassword123"
+        description="密码（密码模式下至少8位，免密模式可留空）",
+        example=None
     )
 
     user_type: Literal["buyer", "provider", "admin"] = Field(
@@ -90,8 +89,10 @@ class RegisterRequest(BaseModel):
 
     @field_validator('password')
     @classmethod
-    def validate_password(cls, v: str) -> str:
+    def validate_password(cls, v: Optional[str]) -> Optional[str]:
         """验证密码强度"""
+        if not v:
+            return v
         if not any(c.isupper() for c in v):
             raise ValueError('密码必须包含至少一个大写字母')
         if not any(c.islower() for c in v):

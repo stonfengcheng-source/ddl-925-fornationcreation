@@ -18,8 +18,8 @@ describe('Input Component', () => {
   it('supports error state', () => {
     render(<Input error placeholder="Error" />);
     const input = screen.getByPlaceholderText('Error');
-    expect(input.className).toContain('border-error');
-    expect(input.className).toContain('focus-visible:ring-error');
+    expect(input.className).toContain('border-accent-red');
+    expect(input.className).toContain('focus:ring-accent-red');
   });
 
   it('forwards refs', () => {

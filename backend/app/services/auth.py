@@ -1,18 +1,23 @@
 import os
+import uuid
 import jwt
 import httpx
 import bcrypt
 from datetime import datetime, timedelta
-from typing import Optional, Union, Any
+from typing import Optional, Union
 from sqlalchemy.orm import Session
 from fastapi import status
 from app.core.exceptions import APIException
 from app.models.user import User
+from app.core.config import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    DEV_AUTH_USERNAME,
+    JWT_ALGORITHM,
+    PASSWORDLESS_AUTH,
+    SECRET_KEY,
+)
 
-# JWT 配置
-SECRET_KEY = os.getenv("SECRET_KEY", "dev_secret_key_123")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7天过期
+# JWT 只用于维持前端会话，不等同于用户登录密码。
 
 
 class AuthService:
@@ -20,11 +25,11 @@ class AuthService:
     # 基础工具方法
     # ==========================
     @staticmethod
-    def verify_password(plain_password: str, hashed_password: str) -> bool:
+    def verify_password(plain_password: Optional[str], hashed_password: Optional[str]) -> bool:
         if not hashed_password:
             return False
         return bcrypt.checkpw(
-            plain_password.encode('utf-8'),
+            (plain_password or "").encode('utf-8'),
             hashed_password.encode('utf-8')
         )
 
@@ -45,7 +50,7 @@ class AuthService:
 
         # 确保 sub 是字符串
         to_encode = {"sub": str(user_id), "exp": expire}
-        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=JWT_ALGORITHM)
         return encoded_jwt
 
     @staticmethod
@@ -72,7 +77,13 @@ class AuthService:
     # 核心修复：匹配你 API 调用的标准 create_user
     # ==========================
     @staticmethod
-    def create_user(db: Session, username: str, password: str, user_type: str, email: str = None) -> User:
+    def create_user(
+        db: Session,
+        username: str,
+        password: Optional[str],
+        user_type: str,
+        email: str = None,
+    ) -> User:
         """
         创建新用户
         参数显式定义，完全匹配 api/auth.py 中的调用
@@ -97,7 +108,7 @@ class AuthService:
         db_user = User(
             username=username,
             email=email,
-            password=AuthService.get_password_hash(password),  # 只有在这里进行哈希
+            password=AuthService.get_password_hash(password) if password else None,
             user_type=user_type
         )
 
@@ -115,6 +126,9 @@ class AuthService:
           - (None, 'not_found') 用户不存在
           - (None, 'wrong_password') 密码错误
         """
+        if PASSWORDLESS_AUTH:
+            return AuthService.get_or_create_dev_user(db, username), None
+
         user = AuthService.get_user_by_username(db, username)
         if not user:
             # 也尝试用邮箱查找
@@ -124,6 +138,41 @@ class AuthService:
         if not AuthService.verify_password(password, user.password):
             return None, 'wrong_password'
         return user, None
+
+    @staticmethod
+    def get_or_create_dev_user(
+        db: Session,
+        username: Optional[str] = None,
+        user_type: Optional[str] = None,
+    ) -> User:
+        """获取本地免密模式用户，不写入任何账号密码。"""
+        requested = (username or DEV_AUTH_USERNAME or "admin").strip()
+        existing = AuthService.get_user_by_username(db, requested)
+        if not existing and "@" in requested:
+            existing = AuthService.get_user_by_email(db, requested)
+        if existing:
+            return existing
+
+        safe_username = "".join(char for char in requested if char.isalnum() or char == "_")
+        safe_username = safe_username[:50] or "admin"
+        if AuthService.get_user_by_username(db, safe_username):
+            safe_username = f"dev_{str(uuid.uuid4())[:8]}"
+
+        allowed_types = {"buyer", "provider", "admin"}
+        resolved_type = user_type if user_type in allowed_types else (
+            "admin" if safe_username.lower() == "admin" else "buyer"
+        )
+        dev_user = User(
+            username=safe_username,
+            email=None,
+            password=None,
+            user_type=resolved_type,
+            status="active",
+        )
+        db.add(dev_user)
+        db.commit()
+        db.refresh(dev_user)
+        return dev_user
 
     # ==========================
     # 微信登录逻辑 (保留)

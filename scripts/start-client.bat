@@ -1,36 +1,18 @@
 @echo off
 chcp 65001 >nul
-title 数据提供方客户端启动器
-echo ==========================================
-echo   数据提供方桌面客户端启动
-echo ==========================================
-echo.
+title 联邦学习客户端节点
 
-set PROJECT_DIR=%~dp0..
-cd /d %PROJECT_DIR%\client
+set "PROJECT_DIR=%~dp0.."
+set "FL_DIR=%PROJECT_DIR%\federated-learning"
+cd /d "%FL_DIR%"
 
-echo 启动客户端...
-echo.
-echo 首次运行会自动安装依赖，请耐心等待
-echo.
-
-if not exist venv (
-    echo 创建虚拟环境...
-    python -m venv venv
+if not exist "%FL_DIR%\.venv\Scripts\python.exe" (
+    echo [错误] 未找到 federated-learning\.venv
+    echo 请先按 federated-learning\README.md 安装联邦学习依赖。
+    pause
+    exit /b 1
 )
 
-echo 安装/检查依赖...
-venv\Scripts\pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-
-echo.
-echo 启动客户端 GUI...
-venv\Scripts\pythonw client_app.pyw
-
-if %errorlevel% neq 0 (
-    echo.
-    echo 启动失败，尝试使用控制台模式...
-    venv\Scripts\python client_app.pyw
-)
-
-echo.
+echo 示例：run_client.py --node-id 0 --server 127.0.0.1:8080
+call "%FL_DIR%\.venv\Scripts\python.exe" run_client.py %*
 pause

@@ -1,5 +1,8 @@
 """
-配置管理 - 集中管理 Embedding 相关配置
+应用配置。
+
+本地开发默认使用免密认证和 SQLite，方便直接在 PyCharm 的 Database 工具中查看数据。
+正式环境应通过环境变量切换回密码认证并设置独立的 SECRET_KEY。
 """
 import os
 from dataclasses import dataclass
@@ -8,6 +11,24 @@ from dotenv import load_dotenv
 
 # 加载环境变量
 load_dotenv()
+
+
+# 认证配置
+APP_ENV = os.getenv("APP_ENV", "development").lower().strip()
+AUTH_MODE = os.getenv("AUTH_MODE", "passwordless").lower().strip()
+PASSWORDLESS_AUTH = AUTH_MODE in {"passwordless", "dev", "none", "disabled"}
+SECRET_KEY = os.getenv("SECRET_KEY", "local-development-only-secret")
+JWT_ALGORITHM = "HS256"
+DEV_AUTH_USERNAME = os.getenv("DEV_AUTH_USERNAME", "admin").strip() or "admin"
+try:
+    ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "10080"))
+except ValueError:
+    ACCESS_TOKEN_EXPIRE_MINUTES = 10080
+
+
+def is_passwordless_auth() -> bool:
+    """返回当前是否启用本地开发免密认证。"""
+    return PASSWORDLESS_AUTH
 
 
 @dataclass

@@ -10,7 +10,7 @@ describe('RevenueShare', () => {
         <RevenueShare />
       </BrowserRouter>
     );
-    // 页面加载时应该显示 loading 状态
-    expect(screen.getByText(/加载分账数据/i)).toBeDefined();
+    // 缺少 taskId 时应结束加载并给出明确提示，而不是永久显示 loading。
+    expect(screen.getByText('暂无贡献度数据')).toBeInTheDocument();
   });
 });

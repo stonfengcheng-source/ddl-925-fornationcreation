@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { message } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons';
 import { useUserStore } from '@/store/useUserStore';
+import { DEFAULT_DEV_USERNAME, PASSWORDLESS_AUTH } from '@/utils/authMode';
 import {
   Shield, Database, Brain, BarChart3, Users, Download,
   ChevronDown, ArrowRight, Lock, Zap, Globe,
@@ -57,7 +58,7 @@ const LandingPage: React.FC = () => {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [loading, setLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
-  const [form, setForm] = useState({ username: '', password: '', email: '', confirmPassword: '' });
+  const [form, setForm] = useState({ username: DEFAULT_DEV_USERNAME, password: '', email: '', confirmPassword: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -81,13 +82,17 @@ const LandingPage: React.FC = () => {
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (!form.username.trim()) errs.username = '请输入用户名';
-    if (!form.password) errs.password = '请输入密码';
+    if (!PASSWORDLESS_AUTH && !form.password) errs.password = '请输入密码';
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
     setLoading(true);
     try {
       const request = (await import('@/services/request')).default;
-      const res: any = await request.post('/auth/login', { username: form.username, password: form.password, source: 'web' });
+      const res: any = await request.post('/auth/login', {
+        username: form.username,
+        password: PASSWORDLESS_AUTH ? '' : form.password,
+        source: 'web',
+      });
       const u = res.user || res.data?.user;
       const t = res.token || res.data?.token;
       login({ userId: u.id, username: u.username, email: u.email || '', role: u.user_type as any }, t);
@@ -104,15 +109,18 @@ const LandingPage: React.FC = () => {
     const errs: Record<string, string> = {};
     if (!form.username.trim()) errs.username = '请输入用户名';
     if (!form.email.trim()) errs.email = '请输入邮箱';
-    if (!form.password) errs.password = '请输入密码';
-    if (form.password !== form.confirmPassword) errs.confirmPassword = '两次密码不一致';
+    if (!PASSWORDLESS_AUTH && !form.password) errs.password = '请输入密码';
+    if (!PASSWORDLESS_AUTH && form.password !== form.confirmPassword) errs.confirmPassword = '两次密码不一致';
     if (Object.keys(errs).length) { setErrors(errs); return; }
 
     setLoading(true);
     try {
       const request = (await import('@/services/request')).default;
       await request.post('/auth/register', {
-        username: form.username, email: form.email, password: form.password, user_type: 'buyer',
+        username: form.username,
+        email: form.email,
+        password: PASSWORDLESS_AUTH ? '' : form.password,
+        user_type: 'buyer',
       });
       message.success('注册成功，请登录');
       setAuthMode('login');
@@ -579,29 +587,35 @@ const LandingPage: React.FC = () => {
                       </div>
                     )}
 
-                    {/* 密码 */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">密码</label>
-                      <div className="relative">
-                        <LockOutlined className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input
-                          name="password"
-                          type={showPwd ? 'text' : 'password'}
-                          value={form.password}
-                          onChange={handleChange}
-                          placeholder="请输入密码"
-                          autoComplete="new-password"
-                          className={`w-full pl-10 pr-10 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all ${errors.password ? 'border-red-300' : 'border-gray-200'}`}
-                        />
-                        <button type="button" onClick={() => setShowPwd(!showPwd)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                          {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
+                    {/* 密码（正式密码模式显示） */}
+                    {!PASSWORDLESS_AUTH ? (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">密码</label>
+                        <div className="relative">
+                          <LockOutlined className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                          <input
+                            name="password"
+                            type={showPwd ? 'text' : 'password'}
+                            value={form.password}
+                            onChange={handleChange}
+                            placeholder="请输入密码"
+                            autoComplete="new-password"
+                            className={`w-full pl-10 pr-10 py-2.5 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all ${errors.password ? 'border-red-300' : 'border-gray-200'}`}
+                          />
+                          <button type="button" onClick={() => setShowPwd(!showPwd)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                        {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
                       </div>
-                      {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
-                    </div>
+                    ) : (
+                      <p className="text-xs text-gray-500">
+                        当前为本地开发免密模式：输入 admin 可直接访问全部权限。
+                      </p>
+                    )}
 
                     {/* 确认密码（仅注册） */}
-                    {authMode === 'register' && (
+                    {!PASSWORDLESS_AUTH && authMode === 'register' && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">确认密码</label>
                         <div className="relative">

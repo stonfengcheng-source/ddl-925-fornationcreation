@@ -17,7 +17,8 @@ describe('Button Component', () => {
   it('applies secondary variant styles', () => {
     render(<Button variant="secondary">Secondary</Button>);
     const button = screen.getByText('Secondary');
-    expect(button).toHaveClass('bg-background-tertiary');
+    expect(button).toHaveClass('bg-white');
+    expect(button).toHaveClass('border');
   });
 
   it('supports disabled state', () => {

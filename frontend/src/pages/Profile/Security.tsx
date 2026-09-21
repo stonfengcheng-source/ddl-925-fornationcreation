@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import request from '@/services/request';
+import { PASSWORDLESS_AUTH } from '@/utils/authMode';
 import {
   Card,
   Form,
@@ -47,20 +48,27 @@ const Security: React.FC = () => {
         </div>
       </Card>
 
-      <Card
-        title={
-          <span>
-            <LockOutlined style={{ marginRight: 8 }} />
-            修改密码
-          </span>
-        }
-      >
-        <Form
-          form={passwordForm}
-          layout="vertical"
-          onFinish={handleChangePassword}
-          style={{ maxWidth: 400 }}
+      {PASSWORDLESS_AUTH ? (
+        <Card title="登录方式">
+          <p style={{ margin: 0, color: 'rgba(0,0,0,0.65)' }}>
+            当前为本地开发免密模式，无需设置或修改账户密码。
+          </p>
+        </Card>
+      ) : (
+        <Card
+          title={
+            <span>
+              <LockOutlined style={{ marginRight: 8 }} />
+              修改密码
+            </span>
+          }
         >
+          <Form
+            form={passwordForm}
+            layout="vertical"
+            onFinish={handleChangePassword}
+            style={{ maxWidth: 400 }}
+          >
           <Form.Item
             label="当前密码"
             name="currentPassword"
@@ -101,8 +109,9 @@ const Security: React.FC = () => {
               确认修改
             </Button>
           </Form.Item>
-        </Form>
-      </Card>
+          </Form>
+        </Card>
+      )}
     </div>
   );
 };

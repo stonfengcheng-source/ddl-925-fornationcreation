@@ -30,10 +30,10 @@ describe('Login Page', () => {
     
     // 验证输入框存在
     expect(screen.getByLabelText('用户名')).toBeInTheDocument();
-    expect(screen.getByLabelText('密码')).toBeInTheDocument();
+    expect(screen.queryByLabelText('密码')).not.toBeInTheDocument();
     
     // 验证登录按钮存在 (AntD 按钮文本可能有空格或 span 包裹)
-    const loginBtn = screen.getByRole('button', { name: /登 录/i });
+    const loginBtn = screen.getByRole('button', { name: /登录/i });
     expect(loginBtn).toBeInTheDocument();
   });
 
@@ -48,10 +48,9 @@ describe('Login Page', () => {
 
     // 模拟输入
     fireEvent.change(screen.getByLabelText('用户名'), { target: { value: 'admin' } });
-    fireEvent.change(screen.getByLabelText('密码'), { target: { value: 'password' } });
     
     // 模拟点击登录
-    const loginBtn = screen.getByRole('button', { name: /登 录/i });
+    const loginBtn = screen.getByRole('button', { name: /登录/i });
     fireEvent.click(loginBtn);
     
     // 验证是否调用了 navigate (需要等待异步操作，这里简化验证逻辑)

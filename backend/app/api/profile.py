@@ -8,6 +8,7 @@ from app.models.user import User
 from app.schemas.common import SuccessResponse
 from app.api.auth import get_current_user
 from app.services.auth import AuthService
+from app.core.config import PASSWORDLESS_AUTH
 
 router = APIRouter()
 
@@ -61,6 +62,9 @@ async def change_password(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if PASSWORDLESS_AUTH:
+        return SuccessResponse(data={"message": "本地免密模式无需设置密码"})
+
     if not AuthService.verify_password(req.current_password, current_user.password):
         raise HTTPException(status_code=400, detail="当前密码错误")
     current_user.password = AuthService.get_password_hash(req.new_password)

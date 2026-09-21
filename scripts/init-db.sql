@@ -1,23 +1,6 @@
--- ============================================================
--- 这个文件的作用：只做一件事 —— 在 PostgreSQL 里创建一个空的“数据库”
--- ============================================================
+-- 本项目默认使用 SQLite，不需要手动创建数据库或输入密码。
+-- 后端首次启动会自动生成 backend/data_task.db 和全部 ORM 表。
 --
--- 需要您手动执行一次（见下方「怎么执行」）。
--- 建好这个数据库之后，表（tasks）会在您启动后端时由程序自动创建，不用再跑别的 SQL。
---
--- 怎么执行（任选一种方式）：
---
--- 方式一：命令行一条命令（推荐）
---   psql -U postgres -f scripts/init-db.sql
--- （在项目根目录执行，且 PostgreSQL 的 bin 已在 PATH 里）
---
--- 方式二：先打开 psql，再粘贴执行
---   1. 打开 cmd 或 PowerShell
---   2. 输入：psql -U postgres
---   3. 输入 postgres 用户密码
---   4. 在 psql 里输入下面这一行（不含注释），回车：
---
-CREATE DATABASE data_task_platform;
-
--- 执行成功后，会看到提示：CREATE DATABASE
--- 之后启动后端（uvicorn app.main:app ...）即可，程序会自动创建 tasks 表。
+-- 该文件仅保留给明确选择 PostgreSQL 的部署场景；请在 PostgreSQL 管理工具中
+-- 按实际账号权限执行下面的语句，不要把密码写入脚本或提交到仓库：
+-- CREATE DATABASE data_task_platform;

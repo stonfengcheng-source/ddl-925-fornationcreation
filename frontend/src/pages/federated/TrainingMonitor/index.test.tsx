@@ -10,7 +10,7 @@ describe('TrainingMonitor', () => {
         <TrainingMonitor />
       </BrowserRouter>
     );
-    // 页面加载时应该显示 loading 状态
-    expect(screen.getByText(/加载训练监控数据/i)).toBeDefined();
+    // 缺少 taskId 时应结束加载并给出明确提示，而不是永久显示 loading。
+    expect(screen.getByText('任务不存在或无训练数据')).toBeInTheDocument();
   });
 });

@@ -12,6 +12,7 @@ import {
   hasAllPermissions,
   hasRole,
   getRoleDisplayName,
+  MENU_VISIBILITY,
 } from '@/config/permissions';
 
 export interface UsePermissionReturn {
@@ -60,11 +61,11 @@ export function usePermission(): UsePermissionReturn {
       hasAllPermissions: (permissions: Permission[]) => hasAllPermissions(role, permissions),
       hasRole: (roles: UserRole[]) => hasRole(role, roles),
       isMenuVisible: (menuPath: string) => {
-        // 导入 MENU_VISIBILITY 进行匹配
-        const { MENU_VISIBILITY } = require('@/config/permissions');
+        const currentRole = role;
+        if (!currentRole) return false;
         const allowedRoles = MENU_VISIBILITY[menuPath];
         if (!allowedRoles) return true; // 未配置的菜单默认可见
-        return allowedRoles.includes(role);
+        return allowedRoles.includes(currentRole);
       },
     };
   }, [role, isAuthenticated]);

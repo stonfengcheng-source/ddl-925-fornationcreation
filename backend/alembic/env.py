@@ -10,7 +10,7 @@ from alembic import context
 # 添加后端应用目录到 Python 路径
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from app.core.database import Base, DATABASE_URL
+from app.core.database import Base, DATABASE_URL, USE_SQLITE
 from app.models import (
     user,
     task,
@@ -67,15 +67,15 @@ def run_migrations_online() -> None:
         )
 
         with context.begin_transaction():
-            # Try to enable pgvector extension, skip if not available
-            try:
-                connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
-                print("pgvector extension enabled successfully")
-            except Exception as e:
-                # Rollback the failed transaction to allow further operations
-                connection.rollback()
-                print(f"Note: pgvector extension not available")
-                print("Skipping pgvector initialization - embedding features will not work")
+            # SQLite 不需要 pgvector；PostgreSQL 模式下尽力启用扩展。
+            if not USE_SQLITE:
+                try:
+                    connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+                    print("pgvector extension enabled successfully")
+                except Exception:
+                    connection.rollback()
+                    print("Note: pgvector extension not available")
+                    print("Skipping pgvector initialization - embedding features will not work")
             context.run_migrations()
 
 

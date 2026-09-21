@@ -72,7 +72,10 @@ const RevenueShare: React.FC = () => {
   const [settling, setSettling] = useState(false);
 
   useEffect(() => {
-    if (!taskId) return;
+    if (!taskId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     request
       .get(`/training/${taskId}/contributions`)
@@ -101,7 +104,10 @@ const RevenueShare: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-50">
-        <Spin size="large" tip="加载贡献度数据..." />
+        <div className="flex flex-col items-center gap-3">
+          <Spin size="large" />
+          <span>加载贡献度数据...</span>
+        </div>
       </div>
     );
   }

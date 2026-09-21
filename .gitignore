@@ -90,3 +90,8 @@ CHANGELOG.md
 tasks/
 
 # --- 注意：这里删除了 backend/ 等目录，确保你的代码能被 Git 识别 ---
+
+# 保留前端的 Tasks 页面源码；上面的 tasks/ 仅用于忽略运行时目录，
+# 在 Windows 大小写不敏感文件系统上会误伤该目录。
+!frontend/src/pages/Tasks/
+!frontend/src/pages/Tasks/**

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useUserStore } from '@/store/useUserStore';
+import { DEFAULT_DEV_USERNAME, PASSWORDLESS_AUTH } from '@/utils/authMode';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -17,7 +18,7 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
-    username: '',
+    username: DEFAULT_DEV_USERNAME,
     password: '',
     remember: false,
   });
@@ -31,7 +32,7 @@ const Login: React.FC = () => {
     if (!formData.username.trim()) {
       newErrors.username = '请输入用户名或邮箱';
     }
-    if (!formData.password) {
+    if (!PASSWORDLESS_AUTH && !formData.password) {
       newErrors.password = '请输入密码';
     }
     setErrors(newErrors);
@@ -65,7 +66,7 @@ const Login: React.FC = () => {
       const request = (await import('@/services/request')).default;
       const res: any = await request.post('/auth/login', {
         username: formData.username,
-        password: formData.password,
+        password: PASSWORDLESS_AUTH ? '' : formData.password,
         source: 'web',
       });
       const userData = res.user || res.data?.user;
@@ -99,12 +100,13 @@ const Login: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
             {/* 用户名/邮箱 */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-text-primary">
-                用户名/邮箱
+              <label htmlFor="username" className="text-sm font-medium text-text-primary">
+                用户名
               </label>
               <div className="relative">
                 <UserOutlined className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
                 <Input
+                  id="username"
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
@@ -119,28 +121,34 @@ const Login: React.FC = () => {
               )}
             </div>
 
-            {/* 密码 */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-text-primary">
-                密码
-              </label>
-              <div className="relative">
-                <LockOutlined className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
-                <Input
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="请输入密码"
-                  className="pl-10"
-                  autoComplete="new-password"
-                  error={!!errors.password}
-                />
+            {!PASSWORDLESS_AUTH ? (
+              <div className="space-y-2">
+                <label htmlFor="password" className="text-sm font-medium text-text-primary">
+                  密码
+                </label>
+                <div className="relative">
+                  <LockOutlined className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="请输入密码"
+                    className="pl-10"
+                    autoComplete="new-password"
+                    error={!!errors.password}
+                  />
+                </div>
+                {errors.password && (
+                  <p className="text-sm text-accent-red">{errors.password}</p>
+                )}
               </div>
-              {errors.password && (
-                <p className="text-sm text-accent-red">{errors.password}</p>
-              )}
-            </div>
+            ) : (
+              <p className="text-sm text-text-secondary">
+                当前为本地开发免密模式，输入用户名即可进入；输入 admin 可访问全部管理权限。
+              </p>
+            )}
 
             {/* 记住我和忘记密码 */}
             <div className="flex items-center justify-between">
@@ -154,12 +162,14 @@ const Login: React.FC = () => {
                 />
                 <span className="text-sm text-text-secondary">记住我</span>
               </label>
-              <Link
-                to="/forgot-password"
-                className="text-sm text-accent-blue hover:underline"
-              >
-                忘记密码？
-              </Link>
+              {!PASSWORDLESS_AUTH && (
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-accent-blue hover:underline"
+                >
+                  忘记密码？
+                </Link>
+              )}
             </div>
 
             {/* 登录按钮 */}

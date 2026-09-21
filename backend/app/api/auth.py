@@ -1,9 +1,7 @@
-"""
-认证相关的 API 路由
-(最终修复版：使用 HTTPBearer 解决 Swagger 无法粘贴 Token 的问题)
-"""
+"""认证相关 API。"""
 from fastapi import APIRouter, Depends, status, HTTPException
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials # 【核心修改】导入 HTTPBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from typing import Optional
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.schemas.auth import (
@@ -16,9 +14,14 @@ from app.schemas.auth import (
 from app.services.auth import AuthService
 from app.models.user import User
 from app.core.exceptions import APIException
+from app.core.config import (
+    DEV_AUTH_USERNAME,
+    JWT_ALGORITHM,
+    PASSWORDLESS_AUTH,
+    SECRET_KEY,
+)
 import jwt
 from jwt import PyJWTError
-import os
 
 # 创建路由器
 router = APIRouter(
@@ -26,21 +29,14 @@ router = APIRouter(
     tags=["认证"],
 )
 
-# ==========================================
-# 1. 【核心修复】认证依赖 (解决 Swagger 弹窗问题)
-# ==========================================
-# 使用 HTTPBearer，Swagger UI 会提供一个简单的输入框让你粘贴 Token
-security = HTTPBearer()
+# HTTPBearer 仍支持 Swagger 粘贴 Token；免密开发模式下请求头可以为空。
+security = HTTPBearer(auto_error=False)
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
-    """
-    解析 Token 并获取当前登录用户
-    """
-    # 从请求头中提取 Token 字符串
-    token = credentials.credentials
+    """解析 Token；免密开发模式允许无 Token 并使用本地开发账号。"""
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -48,19 +44,25 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
+    # 本地开发免密：有有效 Token 时仍保留用户角色；无 Token 时默认 admin。
+    if PASSWORDLESS_AUTH and not credentials:
+        return AuthService.get_or_create_dev_user(db, DEV_AUTH_USERNAME, "admin")
+
+    if not credentials:
+        raise credentials_exception
+
     try:
-        # 确保这里的密钥与生成 Token 时的一致
-        SECRET_KEY = os.getenv("SECRET_KEY", "dev_secret_key_123")
-        ALGORITHM = "HS256"
-
-        # 解码 Token
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
-
+        payload = jwt.decode(
+            credentials.credentials,
+            SECRET_KEY,
+            algorithms=[JWT_ALGORITHM],
+        )
+        user_id: Optional[str] = payload.get("sub")
         if user_id is None:
             raise credentials_exception
-
     except PyJWTError:
+        if PASSWORDLESS_AUTH:
+            return AuthService.get_or_create_dev_user(db, DEV_AUTH_USERNAME, "admin")
         raise credentials_exception
 
     # 从数据库查找用户
@@ -79,7 +81,7 @@ async def get_current_user(
     response_model=LoginResponse,
     status_code=status.HTTP_200_OK,
     summary="用户登录",
-    description="使用用户名/邮箱和密码登录"
+    description="密码模式使用用户名/邮箱和密码；本地免密模式只需填写用户名"
 )
 async def login(
     request: LoginRequest,
@@ -100,15 +102,15 @@ async def login(
             message="密码错误"
         )
 
-    # 登录来源检查：source 字段区分 web / desktop
+    # 登录来源检查：仅在密码模式保留旧的 web/desktop 角色限制。
     source = request.source or 'web'
-    if source == 'web' and user.user_type == 'provider':
+    if not PASSWORDLESS_AUTH and source == 'web' and user.user_type == 'provider':
         raise APIException(
             status_code=403,
             error_code="ROLE_NOT_ALLOWED",
             message="数据提供方请使用桌面客户端登录"
         )
-    if source == 'desktop' and user.user_type not in ('provider',):
+    if not PASSWORDLESS_AUTH and source == 'desktop' and user.user_type not in ('provider',):
         raise APIException(
             status_code=403,
             error_code="ROLE_NOT_ALLOWED",

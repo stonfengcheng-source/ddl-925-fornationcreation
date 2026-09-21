@@ -12,7 +12,6 @@ from app.models.user import User
 from app.models.task import Task
 from app.models.dataset import Dataset
 from app.models.node import Node
-from app.services.auth import AuthService
 import uuid
 
 # 确保所有模型已注册
@@ -24,17 +23,16 @@ Base.metadata.create_all(bind=engine)
 ensure_schema_up_to_date()
 db = SessionLocal()
 
-def get_or_create_user(username, email, password, user_type):
+def get_or_create_user(username, email, user_type):
     u = db.query(User).filter(User.username == username).first()
     if u:
         print(f"  用户已存在: {username} ({u.id})")
         return u
-    hashed = AuthService.get_password_hash(password)
     u = User(
         id=str(uuid.uuid4()),
         username=username,
         email=email,
-        password=hashed,
+        password=None,
         user_type=user_type,
         status="active",
     )
@@ -49,11 +47,11 @@ print("=" * 60)
 
 # ── 0. Admin ──────────────────────────────────────────
 print("\n[0] 创建 admin 用户...")
-admin = get_or_create_user("admin", "admin@test.com", "Admin123456", "admin")
+admin = get_or_create_user("admin", "admin@test.com", "admin")
 
 # ── 1. Buyer: 发布任务 ─────────────────────────────────
 print("\n[1] 创建 buyer 用户...")
-buyer = get_or_create_user("buyer", "buyer@test.com", "Buyer123456", "buyer")
+buyer = get_or_create_user("buyer", "buyer@test.com", "buyer")
 
 # 检查是否已有任务
 existing_task = db.query(Task).filter(Task.publisher_id == buyer.id).first()
@@ -87,7 +85,7 @@ else:
 
 # ── 2. Provider A ──────────────────────────────────────
 print("\n[2] 创建 provider_a 用户 + 数据集 + 节点...")
-provider_a = get_or_create_user("provider_a", "provider_a@test.com", "Provider123456", "provider")
+provider_a = get_or_create_user("provider_a", "provider_a@test.com", "provider")
 
 if not db.query(Dataset).filter(Dataset.owner_id == provider_a.id).first():
     ds_a = Dataset(
@@ -139,7 +137,7 @@ else:
 
 # ── 3. Provider B ──────────────────────────────────────
 print("\n[3] 创建 provider_b 用户 + 数据集 + 节点...")
-provider_b = get_or_create_user("provider_b", "provider_b@test.com", "Provider123456", "provider")
+provider_b = get_or_create_user("provider_b", "provider_b@test.com", "provider")
 
 if not db.query(Dataset).filter(Dataset.owner_id == provider_b.id).first():
     ds_b = Dataset(
@@ -194,7 +192,5 @@ db.close()
 
 print("\n" + "=" * 60)
 print("  种子数据创建完成！")
-print("  管理员: admin / Admin123456")
-print("  需求方: buyer / Buyer123456")
-print("  提供方: provider_a / Provider123456, provider_b / Provider123456")
+print("  本地免密登录账号: admin / buyer / provider_a / provider_b")
 print("=" * 60)

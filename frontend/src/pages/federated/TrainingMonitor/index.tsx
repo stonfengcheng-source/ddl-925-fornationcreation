@@ -76,7 +76,10 @@ const TrainingMonitor: React.FC = () => {
   const [settling, setSettling] = useState(false);
 
   const fetchStatus = useCallback(async () => {
-    if (!taskId) return;
+    if (!taskId) {
+      setLoading(false);
+      return;
+    }
     try {
       const res: any = await request.get(`/training/${taskId}/status`);
       setData(res?.data || res || null);
@@ -154,7 +157,10 @@ const TrainingMonitor: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-50">
-        <Spin size="large" tip="加载训练监控数据..." />
+        <div className="flex flex-col items-center gap-3">
+          <Spin size="large" />
+          <span>加载训练监控数据...</span>
+        </div>
       </div>
     );
   }

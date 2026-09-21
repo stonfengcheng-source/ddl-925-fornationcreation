@@ -1,121 +1,67 @@
-# 后端服务
+# FastAPI 后端
 
-数据任务交易平台的后端API服务，基于 FastAPI 和 PostgreSQL。
+后端是项目的统一 API 服务，负责认证、任务、数据资产、边缘节点、联邦训练、通知、钱包和管理后台。
 
-## 环境要求
+## 本地启动
 
-- Python 3.9+
-- PostgreSQL 15+
+默认配置为 SQLite + 本地免密模式，不需要创建 PostgreSQL 数据库：
 
-## 快速开始
-
-### 1. 安装依赖
-
-```bash
+```powershell
 cd backend
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# Linux/Mac
-source venv/bin/activate
-
-pip install -r requirements.txt
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+$env:AUTH_MODE = "passwordless"
+$env:USE_SQLITE = "true"
+.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-### 2. 配置数据库
+API 文档：http://localhost:8000/docs
 
-创建 `.env` 文件（参考 `.env.example`）：
+项目首次启动会自动创建 `backend/data_task.db` 和 ORM 表。测试数据可选：
 
-```bash
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/data_task_platform
+```powershell
+.venv\Scripts\python.exe seed_test_data.py
 ```
 
-### 3. 创建数据库
+免密开发账号：`admin`、`buyer`、`provider`。输入用户名即可登录，`admin` 默认拥有全部管理权限。
 
-在 PostgreSQL 中创建数据库：
+## 配置
 
-```sql
-CREATE DATABASE data_task_platform;
+复制 `.env.example` 为 `.env` 后按需修改。常用配置：
+
+```env
+APP_ENV=development
+AUTH_MODE=passwordless
+USE_SQLITE=true
+DEV_AUTH_USERNAME=admin
 ```
 
-### 4. 启动服务
+密码认证模式使用 `AUTH_MODE=password`，此时登录接口会校验密码。PostgreSQL 仅作为可选生产/向量检索数据库：
 
-```bash
-uvicorn app.main:app --reload --port 8000
+```env
+USE_SQLITE=false
+DATABASE_URL=postgresql+psycopg2://postgres@localhost:5432/data_task_platform
 ```
 
-服务将在 http://localhost:8000 启动
+PyCharm Database 工具不能作为 FastAPI 的运行时连接池；本地开发时请让 PyCharm SQLite 数据源直接打开 `data_task.db`。应用连接始终由 `DATABASE_URL`/`USE_SQLITE` 决定。
 
-API文档：http://localhost:8000/docs
+## 目录职责
 
-## 项目结构
-
-```
-backend/
-├── app/
-│   ├── __init__.py
-│   ├── main.py              # FastAPI 应用入口
-│   ├── api/                 # API 路由层
-│   │   └── tasks.py         # 任务相关接口
-│   ├── models/              # 数据库 ORM 模型
-│   │   └── task.py          # 任务模型
-│   ├── schemas/             # Pydantic 数据模型
-│   │   ├── common.py        # 通用响应格式
-│   │   └── task.py          # 任务相关模型
-│   ├── services/            # 业务逻辑层
-│   └── core/                # 核心功能
-│       ├── database.py      # 数据库连接
-│       └── exceptions.py    # 自定义异常
-├── requirements.txt         # Python 依赖
-├── .env.example             # 环境变量示例
-└── README.md                # 本文件
+```text
+app/
+├─ api/       路由和权限入口
+├─ models/    SQLAlchemy ORM 模型
+├─ schemas/   Pydantic 请求/响应结构
+├─ services/  业务服务和异步任务
+└─ core/      配置、数据库、异常处理
+alembic/      可选数据库迁移
+scripts/      pgvector 和语义检索辅助脚本
 ```
 
-## API 端点
+## 检查
 
-### 创建任务
-
-```http
-POST /api/tasks
-Content-Type: application/json
-
-{
-  "task_name": "医疗影像分类模型训练",
-  "task_category": "医疗影像分类",
-  "task_description": "需要训练一个能够识别肺部CT影像中是否存在病变的深度学习模型",
-  "task_tags": ["医疗", "影像", "分类"]
-}
+```powershell
+.venv\Scripts\python.exe -m compileall app
+.venv\Scripts\python.exe -m pytest
 ```
 
-### 获取任务列表
-
-```http
-GET /api/tasks
-```
-
-### 获取任务详情
-
-```http
-GET /api/tasks/{task_id}
-```
-
-## 数据库表结构
-
-### tasks 表
-
-| 字段名 | 类型 | 说明 |
-|--------|------|------|
-| id | UUID | 主键 |
-| task_name | VARCHAR(200) | 任务名称 |
-| task_category | ENUM | 任务类别 |
-| task_description | TEXT | 任务描述 |
-| task_tags | ARRAY[VARCHAR] | 任务标签 |
-| created_at | TIMESTAMP | 创建时间 |
-| updated_at | TIMESTAMP | 更新时间 |
-
-## 开发说明
-
-- 遵循 RESTful API 设计规范
-- 使用 SQLAlchemy ORM 进行数据库操作
-- 使用 Pydantic 进行数据验证
-- 自动生成 API 文档（Swagger UI）
+后端没有安装 Python 时，先在 PyCharm 为 `backend` 选择可用解释器，再执行依赖安装；不要把 `.idea` 中的解释器名称当作系统命令。
