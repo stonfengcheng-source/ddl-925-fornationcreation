@@ -247,6 +247,21 @@ _FL_DIR = os.path.join(
     "federated-learning",
 )
 
+
+def _resolve_fl_python(fl_dir: str = _FL_DIR) -> str:
+    """寻找联邦学习运行时，避免 venv/.venv 命名差异让前端启动失败。"""
+    configured = os.environ.get("FL_PYTHON", "").strip()
+    candidates = [
+        configured,
+        os.path.join(fl_dir, ".venv", "Scripts", "python.exe"),
+        os.path.join(fl_dir, "venv", "Scripts", "python.exe"),
+        sys.executable,
+    ]
+    for candidate in candidates:
+        if candidate and os.path.exists(candidate):
+            return candidate
+    return sys.executable
+
 # 模型配置映射（不含 class 对象，纯 JSON 安全）
 _MODEL_CONFIGS = {
     "breast_cancer": {
@@ -699,13 +714,19 @@ def _find_available_port(preferred: int = 8099) -> int:
 @router.post("/{task_id}/start", summary="启动联邦学习训练")
 async def start_training(
     task_id: str,
-    mode: str = Query("local", description="local=本地模拟 remote=远程客户端"),
+    mode: str = Query("demo", description="demo=一键本机演示 local=已接入节点 remote=远程客户端"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     task = db.query(Task).filter(Task.id == task_id).first()
     if not task:
         raise HTTPException(404, "任务不存在")
+
+    if mode not in ("demo", "local", "remote"):
+        raise HTTPException(400, "不支持的训练模式，可选 demo、local、remote")
+
+    if task.status in ("training", "running"):
+        raise HTTPException(409, "该任务正在训练中，请直接查看训练进度")
 
     # 检查参与者数量
     participants = (
@@ -728,7 +749,9 @@ async def start_training(
     # 初始化训练状态
     num_rounds = task.max_rounds or 5
     flower_port = _find_available_port(int(os.environ.get("FLOWER_PORT", "8099")))
-    effective_clients = participants if mode == "local" else (task.min_nodes or 2)
+    # demo 模式使用项目内置样例数据启动两个模拟节点，不要求用户先注册节点，
+    # 让第一次使用可以直接跑通联邦学习主流程。
+    effective_clients = 2 if mode == "demo" else (participants if mode == "local" else (task.min_nodes or 2))
     # 构建 DP 配置
     dp_config = None
     if task.dp_enabled:
@@ -792,9 +815,7 @@ def _run_flower_training(task_id: str, num_rounds: int, num_clients: int, db_url
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
         "federated-learning",
     )
-    python_exe = os.path.join(fl_dir, "venv", "Scripts", "python.exe")
-    if not os.path.exists(python_exe):
-        python_exe = sys.executable
+    python_exe = _resolve_fl_python(fl_dir)
 
     flower_port = _training_status.get(task_id, {}).get("flower_port", 8099)
     server_address = f"0.0.0.0:{flower_port}"
@@ -838,8 +859,9 @@ def _run_flower_training(task_id: str, num_rounds: int, num_clients: int, db_url
         import time
         time.sleep(5)
 
-        if mode == "local":
-            # 本地模式：自动启动客户端
+        if mode in ("demo", "local"):
+            # 本机模式：自动启动客户端。demo 不依赖数据库中的真实节点，
+            # 使用联邦学习目录中的样例数据完成一次可重复的演示训练。
             for i in range(num_clients):
                 status_ref["logs"].append(
                     f"[{datetime.utcnow().isoformat()}] 启动客户端节点 #{i}..."
@@ -902,8 +924,12 @@ def _run_flower_training(task_id: str, num_rounds: int, num_clients: int, db_url
                     pass
 
         server_proc.wait()
+        if server_proc.returncode != 0:
+            raise RuntimeError(f"Flower 服务端异常退出，返回码: {server_proc.returncode}")
         for proc in processes[1:]:
             proc.wait(timeout=30)
+            if proc.returncode != 0:
+                raise RuntimeError(f"Flower 客户端异常退出，返回码: {proc.returncode}")
 
         status_ref["status"] = "completed"
         status_ref["logs"].append(
@@ -1001,6 +1027,7 @@ async def get_training_status(
             "task_id": task_id,
             "task_name": task.task_name,
             "status": live["status"],
+            "mode": live.get("mode", ""),
             "current_round": live["current_round"],
             "total_rounds": live["total_rounds"],
             "accuracy": live["accuracy"],
@@ -1019,6 +1046,7 @@ async def get_training_status(
         "task_id": task_id,
         "task_name": task.task_name,
         "status": task.status,
+        "mode": "",
         "current_round": task.current_round or 0,
         "total_rounds": task.max_rounds or 5,
         "accuracy": task.current_accuracy or 0,
@@ -1272,9 +1300,7 @@ async def download_model(
             os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),
             "federated-learning",
         )
-        python_exe = os.path.join(fl_dir, "venv", "Scripts", "python.exe")
-        if not os.path.exists(python_exe):
-            python_exe = sys.executable
+        python_exe = _resolve_fl_python(fl_dir)
         _save_model_file(task_id, fl_dir, python_exe, model_type=task.model_type or "breast_cancer")
 
     if not os.path.exists(model_path):
