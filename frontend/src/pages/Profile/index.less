@@ -1,0 +1,125 @@
+.profile-page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  .profile-card {
+    margin-bottom: 24px;
+  }
+
+  .profile-header {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 24px;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+
+  .avatar-section {
+    position: relative;
+
+    .avatar-upload {
+      cursor: pointer;
+      transition: all 0.3s;
+
+      &:hover {
+        opacity: 0.8;
+      }
+    }
+
+    .avatar-edit-icon {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      background: #1890ff;
+      color: #fff;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 2px solid #fff;
+    }
+  }
+
+  .profile-info {
+    flex: 1;
+
+    .username {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .user-meta {
+      color: rgba(0, 0, 0, 0.45);
+      font-size: 14px;
+
+      .meta-item {
+        display: inline-flex;
+        align-items: center;
+        margin-right: 16px;
+
+        .anticon {
+          margin-right: 4px;
+        }
+      }
+    }
+  }
+
+  .verification-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: #f6ffed;
+    border: 1px solid #b7eb8f;
+
+    &.unverified {
+      background: #fff7e6;
+      border-color: #ffd591;
+    }
+
+    &.pending {
+      background: #e6f7ff;
+      border-color: #91d5ff;
+    }
+
+    .badge-icon {
+      font-size: 20px;
+    }
+
+    .badge-text {
+      font-size: 14px;
+      font-weight: 500;
+    }
+  }
+
+  .form-section {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #f0f0f0;
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+
+  .verification-form {
+    background: #fafafa;
+    padding: 24px;
+    border-radius: 8px;
+  }
+}

@@ -1,0 +1,423 @@
+/**
+ * TaskPublish 页面样式
+ */
+
+.taskPublish {
+  padding: 0;
+}
+
+// 页面头部
+.pageHeader {
+  margin-bottom: 24px;
+
+  h1 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #262626;
+  }
+
+  p {
+    color: #8c8c8c;
+    margin: 0;
+  }
+}
+
+// 步骤条容器
+.stepsContainer {
+  background: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+// 步骤内容区域
+.stepContent {
+  background: #fff;
+  padding: 32px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  min-height: 400px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+// 步骤标题
+.stepTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 8px;
+}
+
+.stepDescription {
+  color: #8c8c8c;
+  margin-bottom: 24px;
+}
+
+// 表单区域
+.formSection {
+  margin-bottom: 32px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+// 模板选择
+.templateGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.templateCard {
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 2px solid transparent;
+
+  &:hover {
+    border-color: #1890ff;
+    box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+  }
+
+  &.selected {
+    border-color: #1890ff;
+    background-color: #e6f7ff;
+  }
+
+  .templateHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+
+    .templateIcon {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .templateName {
+      font-weight: 600;
+      color: #262626;
+    }
+  }
+
+  .templateDescription {
+    color: #8c8c8c;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+}
+
+// 模型选择
+.modelSelectGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.modelOption {
+  padding: 16px;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &:hover {
+    border-color: #1890ff;
+  }
+
+  &.selected {
+    border-color: #1890ff;
+    background-color: #e6f7ff;
+  }
+
+  .modelName {
+    font-weight: 600;
+    color: #262626;
+    margin-bottom: 4px;
+  }
+
+  .modelDescription {
+    font-size: 12px;
+    color: #8c8c8c;
+  }
+}
+
+// 聚合策略卡片
+.strategyCard {
+  height: 100%;
+
+  .strategyHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+
+    .strategyName {
+      font-weight: 600;
+      color: #262626;
+    }
+  }
+
+  .strategyDescription {
+    color: #8c8c8c;
+    font-size: 13px;
+    margin-bottom: 16px;
+    min-height: 40px;
+  }
+
+  .strategyPros,
+  .strategyCons {
+    margin-bottom: 12px;
+
+    .label {
+      font-size: 12px;
+      color: #8c8c8c;
+      margin-bottom: 4px;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+  }
+}
+
+// 隐私等级选择
+.privacyLevelGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.privacyLevelCard {
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 2px solid transparent;
+
+  &:hover {
+    border-color: #1890ff;
+  }
+
+  &.selected {
+    border-color: #1890ff;
+    background-color: #e6f7ff;
+  }
+
+  .privacyHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+
+    .privacyName {
+      font-weight: 600;
+      color: #262626;
+    }
+  }
+
+  .privacyDescription {
+    color: #8c8c8c;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  .privacyFeatures {
+    .featureItem {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #595959;
+      margin-bottom: 4px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
+
+// 预算建议
+.budgetSuggestion {
+  background-color: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+
+  .suggestionTitle {
+    font-weight: 600;
+    color: #52c41a;
+    margin-bottom: 8px;
+  }
+
+  .suggestionContent {
+    color: #595959;
+    font-size: 13px;
+  }
+}
+
+// 确认页面
+.confirmSection {
+  margin-bottom: 32px;
+
+  .confirmTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: #262626;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.confirmCard {
+  background-color: #fafafa;
+  border-radius: 8px;
+  padding: 20px;
+
+  .confirmItem {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .label {
+      color: #8c8c8c;
+    }
+
+    .value {
+      color: #262626;
+      font-weight: 500;
+
+      &.highlight {
+        color: #fa8c16;
+        font-size: 18px;
+      }
+    }
+  }
+}
+
+// 步骤操作按钮
+.stepActions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+  button {
+    min-width: 120px;
+  }
+}
+
+// 成功页面
+.successContainer {
+  text-align: center;
+  padding: 48px;
+
+  .successIcon {
+    font-size: 72px;
+    color: #52c41a;
+    margin-bottom: 24px;
+  }
+
+  .successTitle {
+    font-size: 24px;
+    font-weight: 600;
+    color: #262626;
+    margin-bottom: 12px;
+  }
+
+  .successDescription {
+    color: #8c8c8c;
+    margin-bottom: 32px;
+  }
+
+  .successActions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+  }
+}
+
+// 提示信息
+.tipCard {
+  background-color: #e6f7ff;
+  border: 1px solid #91d5ff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+
+  .tipTitle {
+    font-weight: 600;
+    color: #1890ff;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tipContent {
+    color: #595959;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+}
+
+// 表单提示
+.formItemTip {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-top: 4px;
+}
+
+// 响应式调整
+@media (max-width: 768px) {
+  .stepContent {
+    padding: 20px;
+  }
+
+  .templateGrid,
+  .modelSelectGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .privacyLevelGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .stepActions {
+    flex-direction: column;
+
+    button {
+      width: 100%;
+    }
+  }
+}

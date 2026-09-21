@@ -1,0 +1,368 @@
+/**
+ * MyTasks 页面样式
+ */
+
+.myTasks {
+  padding: 0;
+}
+
+// 页面头部
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+
+  .headerLeft {
+    h1 {
+      margin: 0 0 8px 0;
+      font-size: 24px;
+      font-weight: 600;
+      color: #262626;
+    }
+
+    p {
+      color: #8c8c8c;
+      margin: 0;
+    }
+  }
+
+  .headerActions {
+    display: flex;
+    gap: 12px;
+  }
+}
+
+// 统计卡片
+.statCards {
+  margin-bottom: 24px;
+
+  .statCard {
+    cursor: pointer;
+    transition: all 0.3s;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    :global(.ant-card-body) {
+      padding: 20px;
+    }
+
+    .statValue {
+      font-size: 28px;
+      font-weight: 600;
+      color: #262626;
+      margin-bottom: 4px;
+    }
+
+    .statLabel {
+      font-size: 14px;
+      color: #8c8c8c;
+    }
+
+    .statTrend {
+      font-size: 12px;
+      color: #52c41a;
+      margin-top: 8px;
+
+      &.down {
+        color: #f5222d;
+      }
+    }
+  }
+}
+
+// 筛选栏
+.filterBar {
+  background: #fff;
+  padding: 16px 24px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  .filterLeft {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .filterRight {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+}
+
+// 任务列表
+.taskList {
+  .taskCard {
+    margin-bottom: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    :global(.ant-card-body) {
+      padding: 20px;
+    }
+
+    .taskHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+
+      .taskTitle {
+        font-size: 16px;
+        font-weight: 600;
+        color: #262626;
+        margin-bottom: 4px;
+      }
+
+      .taskId {
+        font-size: 12px;
+        color: #8c8c8c;
+        font-family: monospace;
+      }
+    }
+
+    .taskDescription {
+      color: #595959;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 16px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .taskMeta {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+
+      .metaItem {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #8c8c8c;
+        font-size: 13px;
+
+        .metaIcon {
+          font-size: 14px;
+        }
+
+        .metaValue {
+          color: #262626;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .taskProgress {
+      margin-bottom: 16px;
+
+      .progressHeader {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+
+        .progressText {
+          font-size: 13px;
+          color: #595959;
+        }
+
+        .progressValue {
+          font-size: 13px;
+          color: #1890ff;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .taskFooter {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid #f0f0f0;
+
+      .taskReward {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        .rewardLabel {
+          font-size: 12px;
+          color: #8c8c8c;
+        }
+
+        .rewardValue {
+          font-size: 18px;
+          font-weight: 600;
+          color: #fa8c16;
+        }
+
+        .rewardCurrency {
+          font-size: 12px;
+          color: #8c8c8c;
+        }
+      }
+
+      .taskActions {
+        display: flex;
+        gap: 8px;
+      }
+    }
+  }
+}
+
+// 申请列表
+.applicationList {
+  .applicationCard {
+    margin-bottom: 12px;
+
+    :global(.ant-card-body) {
+      padding: 16px;
+    }
+
+    .applicationHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+
+      .applicantInfo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        .applicantName {
+          font-weight: 500;
+          color: #262626;
+        }
+
+        .applicantOrg {
+          font-size: 12px;
+          color: #8c8c8c;
+        }
+      }
+    }
+
+    .applicationMeta {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: #595959;
+
+      .metaItem {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+    }
+
+    .applicationActions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+  }
+}
+
+// 空状态
+.emptyState {
+  text-align: center;
+  padding: 64px 24px;
+  background: #fff;
+  border-radius: 8px;
+
+  .emptyIcon {
+    font-size: 64px;
+    color: #d9d9d9;
+    margin-bottom: 16px;
+  }
+
+  .emptyTitle {
+    font-size: 16px;
+    color: #262626;
+    margin-bottom: 8px;
+  }
+
+  .emptyDescription {
+    color: #8c8c8c;
+    margin-bottom: 24px;
+  }
+}
+
+// 加载状态
+.loadingState {
+  text-align: center;
+  padding: 64px;
+}
+
+// 分页
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+// 响应式调整
+@media (max-width: 768px) {
+  .pageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+
+    .headerActions {
+      width: 100%;
+
+      button {
+        flex: 1;
+      }
+    }
+  }
+
+  .filterBar {
+    flex-direction: column;
+    align-items: stretch;
+
+    .filterLeft,
+    .filterRight {
+      width: 100%;
+
+      > * {
+        flex: 1;
+      }
+    }
+  }
+
+  .taskCard {
+    .taskFooter {
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
+
+      .taskActions {
+        justify-content: stretch;
+
+        button {
+          flex: 1;
+        }
+      }
+    }
+  }
+}

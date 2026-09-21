@@ -1,0 +1,203 @@
+/**
+ * 数据集列表页面样式
+ */
+
+.datasetList {
+  padding: 0;
+}
+
+// 页面标题
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.pageTitle {
+  margin-bottom: 4px !important;
+}
+
+// 筛选卡片
+.filterCard {
+  margin-bottom: 16px;
+
+  :global(.ant-card-body) {
+    padding: 16px 24px;
+  }
+}
+
+.tagFilter {
+  margin-top: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.tagFilterLabel {
+  flex-shrink: 0;
+  padding-top: 4px;
+}
+
+.filterTag {
+  transition: all 0.3s;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+// 统计栏
+.statsBar {
+  margin-bottom: 16px;
+}
+
+// 数据集卡片
+.datasetCard {
+  height: 100%;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  :global(.ant-card-body) {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.fileIcon {
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.moreBtn {
+  padding: 4px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.datasetCard:hover .moreBtn {
+  opacity: 1;
+}
+
+// 卡片内容
+.cardContent {
+  flex: 1;
+  margin-bottom: 16px;
+}
+
+.datasetName {
+  margin-bottom: 8px !important;
+}
+
+.datasetDesc {
+  margin-bottom: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+// 统计信息
+.cardStats {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-top: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 12px;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+
+  :global(.ant-typography) {
+    font-size: 12px;
+  }
+
+  :global(.ant-typography-secondary) {
+    font-size: 11px;
+  }
+}
+
+// 卡片底部
+.cardFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tags {
+  min-height: 24px;
+}
+
+.tag {
+  font-size: 11px;
+  padding: 0 6px;
+  margin: 0;
+}
+
+.footerInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.owner {
+  font-size: 12px;
+}
+
+.qualityScore {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #52c41a;
+  font-weight: 500;
+}
+
+// 空状态
+.emptyState {
+  padding: 60px 0;
+}
+
+// 响应式调整
+@media (max-width: 768px) {
+  .pageHeader {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .tagFilter {
+    flex-direction: column;
+  }
+
+  .moreBtn {
+    opacity: 1;
+  }
+}

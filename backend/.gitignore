@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment (重要：防止密码泄露)
+.env
+.env.local
+
+# Database
+*.db
+*.sqlite
+
+# Logs
+*.log

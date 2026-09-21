@@ -1,0 +1,229 @@
+/**
+ * Admin Dashboard 页面样式
+ */
+
+.dashboard {
+  padding: 0;
+}
+
+// 页面标题
+.pageHeader {
+  margin-bottom: 20px;
+
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #262626;
+    margin-bottom: 8px;
+  }
+
+  p {
+    font-size: 14px;
+    color: #8c8c8c;
+  }
+}
+
+// 统计卡片
+.statRow {
+  margin-bottom: 24px;
+}
+
+.statCard {
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  :global(.ant-card-body) {
+    padding: 20px;
+  }
+}
+
+.statCardContent {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.statIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.statInfo {
+  flex: 1;
+}
+
+.statTitle {
+  font-size: 14px;
+  color: #8c8c8c;
+  margin-bottom: 4px;
+}
+
+.statValue {
+  :global(.ant-statistic-content) {
+    font-size: 28px;
+    font-weight: 600;
+    color: #262626;
+  }
+}
+
+.statTrend {
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.trendUp {
+  color: #52c41a;
+}
+
+.trendDown {
+  color: #ff4d4f;
+}
+
+// 今日数据卡片
+.todayCard {
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  border: none;
+
+  :global(.ant-card-body) {
+    padding: 20px 24px;
+  }
+
+  .todayLabel {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 4px;
+  }
+
+  .todayValue {
+    font-size: 24px;
+    font-weight: 600;
+    color: #fff;
+  }
+}
+
+// 图表标签页
+.chartTabs {
+  margin-bottom: 24px;
+
+  :global {
+    .ant-tabs-nav {
+      margin-bottom: 16px;
+    }
+
+    .ant-tabs-tab {
+      padding: 8px 16px;
+    }
+  }
+}
+
+.chartCard {
+  :global(.ant-card-head) {
+    border-bottom: 1px solid #f0f0f0;
+    font-weight: 600;
+  }
+
+  :global(.ant-card-body) {
+    padding: 16px;
+  }
+}
+
+// 下方内容区
+.bottomSection {
+  margin-bottom: 24px;
+}
+
+.sectionCard {
+  :global(.ant-card-head) {
+    border-bottom: 1px solid #f0f0f0;
+    font-weight: 600;
+  }
+
+  :global(.ant-card-body) {
+    padding: 16px;
+  }
+}
+
+// 等宽字体
+.monoText {
+  font-family: 'SF Mono', Monaco, monospace;
+  font-size: 12px;
+}
+
+// 金额样式
+.amountPositive {
+  color: #52c41a;
+  font-weight: 500;
+}
+
+.amountNegative {
+  color: #ff4d4f;
+  font-weight: 500;
+}
+
+// 告警项
+.alertItem {
+  padding: 12px 0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+}
+
+.resolved {
+  color: #8c8c8c;
+  text-decoration: line-through;
+}
+
+// 快捷入口
+.quickAccessCard {
+  :global(.ant-card-head) {
+    border-bottom: 1px solid #f0f0f0;
+    font-weight: 600;
+  }
+
+  :global(.ant-card-body) {
+    padding: 24px;
+  }
+
+  :global(.ant-btn) {
+    height: 48px;
+
+    .anticon {
+      font-size: 18px;
+      margin-right: 8px;
+    }
+  }
+}
+
+// 响应式调整
+@media (max-width: 768px) {
+  .pageHeader h1 {
+    font-size: 18px;
+  }
+
+  .statCardContent {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .todayCard {
+    :global(.ant-card-body) {
+      padding: 16px;
+    }
+  }
+}
