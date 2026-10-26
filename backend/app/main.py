@@ -5,7 +5,9 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from app.api import tasks, auth, datasets, nodes, training, wallet, profile, notifications, admin
+from app.api import tasks, auth, datasets, nodes, training, wallet, profile, notifications, admin, module4
+from app.services.module4 import TASKS as MODULE4_TASKS
+from contextlib import asynccontextmanager
 from app.core.database import engine, Base, init_db_extensions, ensure_schema_up_to_date
 from app.core.exceptions import APIException
 from datetime import datetime
@@ -27,7 +29,16 @@ except Exception as e:
     print("  3. 或设置环境变量 USE_SQLITE=true 使用 SQLite")
     raise
 
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    try:
+        yield
+    finally:
+        MODULE4_TASKS.stop()
+
+
 app = FastAPI(
+    lifespan=lifespan,
     title="数据任务交易平台 API",
     description="基于联邦学习的数据任务交易平台 RESTful API",
     version="1.0.0",
@@ -55,6 +66,7 @@ app.include_router(wallet.router, prefix="/api/wallet", tags=["钱包"])
 app.include_router(profile.router, prefix="/api/profile", tags=["个人资料"])
 app.include_router(notifications.router, prefix="/api/notifications", tags=["通知"])
 app.include_router(admin.router, prefix="/api/admin", tags=["管理后台"])
+app.include_router(module4.router, prefix="/api/module4", tags=["数据筛选与模型验证"])
 
 @app.get("/")
 async def root():

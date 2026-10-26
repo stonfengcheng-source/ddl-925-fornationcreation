@@ -8,7 +8,11 @@ env/
 venv/
 ENV/
 .venv
+.venv-lora/
+.venv-datajuicer/
 .env
+.env.*
+!.env.example
 
 # Node.js (保留以备将来前端使用)
 node_modules/
@@ -47,11 +51,15 @@ data/
 *.pkl
 *.pth
 *.ckpt
+*.safetensors
+pytorch_model*.bin
+adapter_model*.bin
 # 注意: 不再忽略 models/ 目录，因为 backend/app/models/ 是ORM代码需要版本控制
 # 如需忽略ML模型权重目录，请用具体路径如 saved_models/
 
 # 训练产物与运行时缓存
 saved_models/
+experiments/
 client/_model_cache/
 client_download/
 federated-learning/sample_data/
@@ -95,3 +103,19 @@ tasks/
 # 在 Windows 大小写不敏感文件系统上会误伤该目录。
 !frontend/src/pages/Tasks/
 !frontend/src/pages/Tasks/**
+
+# Module 4 runtime caches
+.cache/
+icl_inference_output/
+.pytest_cache/
+
+# Module 4 generated training configurations (regenerate through the page/scripts)
+/configs/module4/*_lora.yaml
+/configs/module4/*_merge.yaml
+/configs/module4/dataset_info.module4.json
+/configs/module4/llamafactory_data/
+/configs/module4/training_manifest.json
+/configs/module4/run_train.bat
+/configs/module4/run_train.ps1
+/configs/module4/run_merge.bat
+/configs/module4/run_merge.ps1

@@ -22,6 +22,7 @@ const mainNavItems: NavItem[] = [
   { icon: ListTodo, label: '任务大厅', href: '/app/tasks', roles: ['buyer', 'admin'] },
   { icon: PlusCircle, label: '发布任务', href: '/app/tasks/publish', roles: ['buyer', 'admin'] },
   { icon: FolderOpen, label: '我的任务', href: '/app/my-tasks', roles: ['buyer', 'admin'] },
+  { icon: Sparkles, label: '数据筛选与模型验证', href: '/app/module4', roles: ['buyer', 'admin'] },
 ];
 
 // 数据管理菜单（仅管理员在Web端可见，提供方功能已迁移至桌面客户端）

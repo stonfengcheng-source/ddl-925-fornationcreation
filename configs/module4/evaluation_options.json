@@ -1,0 +1,811 @@
+{
+  "profiles": [
+    {
+      "value": "smoke",
+      "label": "极简测试",
+      "subjects": [
+        "ceval:high_school_chinese",
+        "cmmlu:education"
+      ],
+      "samples_per_subject": 5
+    },
+    {
+      "value": "quick",
+      "label": "快速测试",
+      "subjects": [
+        "ceval:high_school_chinese",
+        "ceval:high_school_mathematics",
+        "cmmlu:education",
+        "cmmlu:professional_law"
+      ],
+      "samples_per_subject": 10
+    },
+    {
+      "value": "light",
+      "label": "轻量测试",
+      "subjects": [
+        "ceval:high_school_chinese",
+        "ceval:high_school_mathematics",
+        "ceval:computer_network",
+        "cmmlu:education",
+        "cmmlu:professional_law",
+        "cmmlu:machine_learning"
+      ],
+      "samples_per_subject": 15
+    },
+    {
+      "value": "standard",
+      "label": "标准测试",
+      "subjects": [
+        "ceval:high_school_chinese",
+        "ceval:high_school_mathematics",
+        "ceval:computer_network",
+        "ceval:operating_system",
+        "cmmlu:education",
+        "cmmlu:professional_law",
+        "cmmlu:machine_learning",
+        "cmmlu:computer_security"
+      ],
+      "samples_per_subject": 20
+    },
+    {
+      "value": "extended",
+      "label": "扩展测试",
+      "subjects": [
+        "ceval:high_school_chinese",
+        "ceval:high_school_mathematics",
+        "ceval:computer_network",
+        "ceval:operating_system",
+        "ceval:college_programming",
+        "cmmlu:education",
+        "cmmlu:professional_law",
+        "cmmlu:machine_learning",
+        "cmmlu:computer_security",
+        "cmmlu:elementary_mathematics"
+      ],
+      "samples_per_subject": 25
+    },
+    {
+      "value": "thorough",
+      "label": "深入测试",
+      "subjects": [
+        "ceval:high_school_chinese",
+        "ceval:high_school_mathematics",
+        "ceval:computer_network",
+        "ceval:operating_system",
+        "ceval:college_programming",
+        "ceval:law",
+        "cmmlu:education",
+        "cmmlu:professional_law",
+        "cmmlu:machine_learning",
+        "cmmlu:computer_security",
+        "cmmlu:elementary_mathematics",
+        "cmmlu:college_education"
+      ],
+      "samples_per_subject": 30
+    },
+    {
+      "value": "full",
+      "label": "完整评测",
+      "subjects": [
+        "ceval:computer_network",
+        "ceval:operating_system",
+        "ceval:computer_architecture",
+        "ceval:college_programming",
+        "ceval:college_physics",
+        "ceval:college_chemistry",
+        "ceval:advanced_mathematics",
+        "ceval:probability_and_statistics",
+        "ceval:discrete_mathematics",
+        "ceval:electrical_engineer",
+        "ceval:metrology_engineer",
+        "ceval:high_school_mathematics",
+        "ceval:high_school_physics",
+        "ceval:high_school_chemistry",
+        "ceval:high_school_biology",
+        "ceval:middle_school_mathematics",
+        "ceval:middle_school_biology",
+        "ceval:middle_school_physics",
+        "ceval:middle_school_chemistry",
+        "ceval:veterinary_medicine",
+        "ceval:college_economics",
+        "ceval:business_administration",
+        "ceval:marxism",
+        "ceval:mao_zedong_thought",
+        "ceval:education_science",
+        "ceval:teacher_qualification",
+        "ceval:high_school_politics",
+        "ceval:high_school_geography",
+        "ceval:middle_school_politics",
+        "ceval:middle_school_geography",
+        "ceval:modern_chinese_history",
+        "ceval:ideological_and_moral_cultivation",
+        "ceval:logic",
+        "ceval:law",
+        "ceval:chinese_language_and_literature",
+        "ceval:art_studies",
+        "ceval:professional_tour_guide",
+        "ceval:legal_professional",
+        "ceval:high_school_chinese",
+        "ceval:high_school_history",
+        "ceval:middle_school_history",
+        "ceval:civil_servant",
+        "ceval:sports_science",
+        "ceval:plant_protection",
+        "ceval:basic_medicine",
+        "ceval:clinical_medicine",
+        "ceval:urban_and_rural_planner",
+        "ceval:accountant",
+        "ceval:fire_engineer",
+        "ceval:environmental_impact_assessment_engineer",
+        "ceval:tax_accountant",
+        "ceval:physician",
+        "cmmlu:agronomy",
+        "cmmlu:anatomy",
+        "cmmlu:ancient_chinese",
+        "cmmlu:arts",
+        "cmmlu:astronomy",
+        "cmmlu:business_ethics",
+        "cmmlu:chinese_civil_service_exam",
+        "cmmlu:chinese_driving_rule",
+        "cmmlu:chinese_food_culture",
+        "cmmlu:chinese_foreign_policy",
+        "cmmlu:chinese_history",
+        "cmmlu:chinese_literature",
+        "cmmlu:chinese_teacher_qualification",
+        "cmmlu:clinical_knowledge",
+        "cmmlu:college_actuarial_science",
+        "cmmlu:college_education",
+        "cmmlu:college_engineering_hydrology",
+        "cmmlu:college_law",
+        "cmmlu:college_mathematics",
+        "cmmlu:college_medical_statistics",
+        "cmmlu:college_medicine",
+        "cmmlu:computer_science",
+        "cmmlu:computer_security",
+        "cmmlu:conceptual_physics",
+        "cmmlu:construction_project_management",
+        "cmmlu:economics",
+        "cmmlu:education",
+        "cmmlu:electrical_engineering",
+        "cmmlu:elementary_chinese",
+        "cmmlu:elementary_commonsense",
+        "cmmlu:elementary_information_and_technology",
+        "cmmlu:elementary_mathematics",
+        "cmmlu:ethnology",
+        "cmmlu:food_science",
+        "cmmlu:genetics",
+        "cmmlu:global_facts",
+        "cmmlu:high_school_biology",
+        "cmmlu:high_school_chemistry",
+        "cmmlu:high_school_geography",
+        "cmmlu:high_school_mathematics",
+        "cmmlu:high_school_physics",
+        "cmmlu:high_school_politics",
+        "cmmlu:human_sexuality",
+        "cmmlu:international_law",
+        "cmmlu:journalism",
+        "cmmlu:jurisprudence",
+        "cmmlu:legal_and_moral_basis",
+        "cmmlu:logical",
+        "cmmlu:machine_learning",
+        "cmmlu:management",
+        "cmmlu:marketing",
+        "cmmlu:marxist_theory",
+        "cmmlu:modern_chinese",
+        "cmmlu:nutrition",
+        "cmmlu:philosophy",
+        "cmmlu:professional_accounting",
+        "cmmlu:professional_law",
+        "cmmlu:professional_medicine",
+        "cmmlu:professional_psychology",
+        "cmmlu:public_relations",
+        "cmmlu:security_study",
+        "cmmlu:sociology",
+        "cmmlu:sports_science",
+        "cmmlu:traditional_chinese_medicine",
+        "cmmlu:virology",
+        "cmmlu:world_history",
+        "cmmlu:world_religions"
+      ],
+      "samples_per_subject": null
+    }
+  ],
+  "subjects": [
+    {
+      "value": "ceval:computer_network",
+      "label": "计算机网络",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:operating_system",
+      "label": "操作系统",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:computer_architecture",
+      "label": "计算机组成",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:college_programming",
+      "label": "大学编程",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:college_physics",
+      "label": "大学物理",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:college_chemistry",
+      "label": "大学化学",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:advanced_mathematics",
+      "label": "高等数学",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:probability_and_statistics",
+      "label": "概率统计",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:discrete_mathematics",
+      "label": "离散数学",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:electrical_engineer",
+      "label": "注册电气工程师",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:metrology_engineer",
+      "label": "注册计量师",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:high_school_mathematics",
+      "label": "高中数学",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:high_school_physics",
+      "label": "高中物理",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:high_school_chemistry",
+      "label": "高中化学",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:high_school_biology",
+      "label": "高中生物",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:middle_school_mathematics",
+      "label": "初中数学",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:middle_school_biology",
+      "label": "初中生物",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:middle_school_physics",
+      "label": "初中物理",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:middle_school_chemistry",
+      "label": "初中化学",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:veterinary_medicine",
+      "label": "兽医学",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:college_economics",
+      "label": "大学经济学",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:business_administration",
+      "label": "工商管理",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:marxism",
+      "label": "马克思主义基本原理",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:mao_zedong_thought",
+      "label": "毛泽东思想和中国特色社会主义理论体系概论",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:education_science",
+      "label": "教育学",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:teacher_qualification",
+      "label": "教师资格",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:high_school_politics",
+      "label": "高中政治",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:high_school_geography",
+      "label": "高中地理",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:middle_school_politics",
+      "label": "初中政治",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:middle_school_geography",
+      "label": "初中地理",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:modern_chinese_history",
+      "label": "近代史纲要",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:ideological_and_moral_cultivation",
+      "label": "思想道德修养与法律基础",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:logic",
+      "label": "逻辑学",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:law",
+      "label": "法学",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:chinese_language_and_literature",
+      "label": "中国语言文学",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:art_studies",
+      "label": "艺术学",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:professional_tour_guide",
+      "label": "导游资格",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:legal_professional",
+      "label": "法律职业资格",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:high_school_chinese",
+      "label": "高中语文",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:high_school_history",
+      "label": "高中历史",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:middle_school_history",
+      "label": "初中历史",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:civil_servant",
+      "label": "公务员",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:sports_science",
+      "label": "体育学",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:plant_protection",
+      "label": "植物保护",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:basic_medicine",
+      "label": "基础医学",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:clinical_medicine",
+      "label": "临床医学",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:urban_and_rural_planner",
+      "label": "注册城乡规划师",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:accountant",
+      "label": "注册会计师",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:fire_engineer",
+      "label": "注册消防工程师",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:environmental_impact_assessment_engineer",
+      "label": "环境影响评价工程师",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:tax_accountant",
+      "label": "税务师",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "ceval:physician",
+      "label": "医师资格",
+      "benchmark": "ceval"
+    },
+    {
+      "value": "cmmlu:agronomy",
+      "label": "农学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:anatomy",
+      "label": "解剖学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:ancient_chinese",
+      "label": "古汉语",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:arts",
+      "label": "艺术学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:astronomy",
+      "label": "天文学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:business_ethics",
+      "label": "商业伦理",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:chinese_civil_service_exam",
+      "label": "中国公务员考试",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:chinese_driving_rule",
+      "label": "中国驾驶规则",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:chinese_food_culture",
+      "label": "中国饮食文化",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:chinese_foreign_policy",
+      "label": "中国外交政策",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:chinese_history",
+      "label": "中国历史",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:chinese_literature",
+      "label": "中国文学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:chinese_teacher_qualification",
+      "label": "中国教师资格",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:clinical_knowledge",
+      "label": "临床知识",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:college_actuarial_science",
+      "label": "大学精算学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:college_education",
+      "label": "大学教育学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:college_engineering_hydrology",
+      "label": "大学工程水文学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:college_law",
+      "label": "大学法律",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:college_mathematics",
+      "label": "大学数学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:college_medical_statistics",
+      "label": "大学医学统计",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:college_medicine",
+      "label": "大学医学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:computer_science",
+      "label": "计算机科学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:computer_security",
+      "label": "计算机安全",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:conceptual_physics",
+      "label": "概念物理学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:construction_project_management",
+      "label": "建设工程管理",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:economics",
+      "label": "经济学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:education",
+      "label": "教育学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:electrical_engineering",
+      "label": "电气工程",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:elementary_chinese",
+      "label": "小学语文",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:elementary_commonsense",
+      "label": "小学常识",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:elementary_information_and_technology",
+      "label": "小学信息技术",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:elementary_mathematics",
+      "label": "初等数学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:ethnology",
+      "label": "民族学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:food_science",
+      "label": "食品科学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:genetics",
+      "label": "遗传学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:global_facts",
+      "label": "全球事实",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:high_school_biology",
+      "label": "高中生物",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:high_school_chemistry",
+      "label": "高中化学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:high_school_geography",
+      "label": "高中地理",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:high_school_mathematics",
+      "label": "高中数学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:high_school_physics",
+      "label": "高中物理学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:high_school_politics",
+      "label": "高中政治",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:human_sexuality",
+      "label": "人类性行为",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:international_law",
+      "label": "国际法学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:journalism",
+      "label": "新闻学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:jurisprudence",
+      "label": "法理学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:legal_and_moral_basis",
+      "label": "法律与道德基础",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:logical",
+      "label": "逻辑学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:machine_learning",
+      "label": "机器学习",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:management",
+      "label": "管理学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:marketing",
+      "label": "市场营销",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:marxist_theory",
+      "label": "马克思主义理论",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:modern_chinese",
+      "label": "现代汉语",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:nutrition",
+      "label": "营养学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:philosophy",
+      "label": "哲学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:professional_accounting",
+      "label": "专业会计",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:professional_law",
+      "label": "专业法学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:professional_medicine",
+      "label": "专业医学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:professional_psychology",
+      "label": "专业心理学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:public_relations",
+      "label": "公共关系",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:security_study",
+      "label": "安全研究",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:sociology",
+      "label": "社会学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:sports_science",
+      "label": "体育学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:traditional_chinese_medicine",
+      "label": "中医中药",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:virology",
+      "label": "病毒学",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:world_history",
+      "label": "世界历史",
+      "benchmark": "cmmlu"
+    },
+    {
+      "value": "cmmlu:world_religions",
+      "label": "世界宗教",
+      "benchmark": "cmmlu"
+    }
+  ]
+}

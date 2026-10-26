@@ -13,6 +13,7 @@ import QualityReport from '@/pages/marketplace/QualityReport';
 import TrainingMonitor from '@/pages/federated/TrainingMonitor';
 import RevenueShare from '@/pages/federated/RevenueShare';
 import PrivacyBudgetDashboard from '@/pages/PrivacyBudget';
+import Module4 from '@/pages/Module4';
 import QualityRuleEditor from '@/pages/quality-rules/Editor';
 import QualityRuleList from '@/pages/quality-rules';
 import NodeList from '@/pages/edge-nodes/NodeList';
@@ -163,6 +164,16 @@ export const routes: RouteObject[] = [
             element: <RevenueShare />,
           },
         ],
+      },
+
+      // 数据筛选与模型验证
+      {
+        path: 'module4',
+        element: (
+          <AuthGuard requiredPermission="module4:manage">
+            <Module4 />
+          </AuthGuard>
+        ),
       },
 
       // 隐私预算模块

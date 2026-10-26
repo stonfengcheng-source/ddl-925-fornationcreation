@@ -9,6 +9,7 @@ import { UserRole } from '@/store/useUserStore';
  * 权限点定义
  */
 export type Permission =
+  | 'module4:manage' // 数据筛选与模型验证 - buyer, admin
   | 'task:publish' // 发布任务 - buyer, admin
   | 'task:join' // 参与任务 - provider, admin
   | 'task:view' // 查看任务 - all roles
@@ -28,6 +29,7 @@ export type Permission =
  */
 export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   buyer: [
+    'module4:manage',
     'task:publish',
     'task:view',
     'node:view',
@@ -46,6 +48,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'privacybudget:view',
   ],
   admin: [
+    'module4:manage',
     'task:publish',
     'task:join',
     'task:view',
@@ -66,6 +69,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
  * 用于 Layout 导航菜单过滤
  */
 export const MENU_VISIBILITY: Record<string, UserRole[]> = {
+  '/module4': ['buyer', 'admin'],
   '/dashboard': ['buyer', 'admin'],
   '/tasks': ['buyer', 'admin'],
   '/tasks/publish': ['buyer', 'admin'],
