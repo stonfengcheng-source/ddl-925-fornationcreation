@@ -58,6 +58,11 @@ request.interceptors.response.use(
     return response.data;
   },
   (error: AxiosError) => {
+    // 页面卸载或重新挂载时会主动取消请求，无需提示错误。
+    if (axios.isCancel(error)) {
+      return Promise.reject(error);
+    }
+
     // 桌面模式下本地服务不可用的特殊提示
     if (getRuntimeMode() === 'desktop' && !error.response) {
       message.error('本地服务未启动，请检查节点状态');

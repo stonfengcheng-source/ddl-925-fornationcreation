@@ -39,6 +39,7 @@ clean/
 │  ├─ server.py / run_client.py   # 多进程服务端/客户端入口
 │  └─ requirements.txt            # 联邦学习依赖
 ├─ scripts/                       # Windows 启动、初始化和说明
+│  └─ module4/                    # 教育文本等量筛选、LoRA 微调和统一评测
 ├─ CONTRIBUTING.md                # Git 协作规范
 └─ README.md                     # 本文件
 ```
@@ -141,6 +142,8 @@ py -3.11 -m venv .venv
 .venv\Scripts\python.exe generate_csv_datasets.py
 .venv\Scripts\python.exe simulation.py --rounds 2 --num-clients 2 --model-type breast_cancer
 ```
+
+教育文本数据集第四模块已接入主网站。按原方式启动前后端并登录后，在侧栏点击“数据筛选与模型验证”（`/app/module4`），即可生成数据、启动微调、运行评测并查看日志和结果，无需额外启动服务。操作说明见 [模块4网页使用说明.md](模块4网页使用说明.md)，开发说明见 [scripts/module4/README.md](scripts/module4/README.md)。
 
 ## 配置说明
 
