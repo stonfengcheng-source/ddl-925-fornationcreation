@@ -21,13 +21,16 @@ DEFAULT_SQLITE_URL = f"sqlite:///{SQLITE_PATH.as_posix()}"
 configured_database_url = os.getenv("DATABASE_URL", "").strip()
 configured_use_sqlite = os.getenv("USE_SQLITE", "").lower() in ("1", "true", "yes")
 
-# 没有显式数据库地址时默认 SQLite；显式设置 USE_SQLITE=true 时也强制使用 SQLite。
-USE_SQLITE = (
-    configured_use_sqlite
-    or not configured_database_url
-    or configured_database_url.lower().startswith("sqlite")
-)
-DATABASE_URL = DEFAULT_SQLITE_URL if USE_SQLITE else configured_database_url
+# 显式 SQLite URL 优先，便于本机隔离测试；否则 USE_SQLITE=true 使用项目默认库。
+if configured_database_url.lower().startswith("sqlite:"):
+    USE_SQLITE = True
+    DATABASE_URL = configured_database_url
+elif configured_use_sqlite or not configured_database_url:
+    USE_SQLITE = True
+    DATABASE_URL = DEFAULT_SQLITE_URL
+else:
+    USE_SQLITE = False
+    DATABASE_URL = configured_database_url
 
 
 def get_engine():

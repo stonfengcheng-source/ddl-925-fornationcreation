@@ -22,7 +22,7 @@ if not exist "%PROJECT_DIR%\backend\.venv\Scripts\python.exe" (
     echo [1/4] 后端虚拟环境已存在
 )
 
-echo [2/4] 安装后端依赖...
+echo [2/5] 安装后端依赖...
 call "%PROJECT_DIR%\backend\.venv\Scripts\python.exe" -m pip install -r "%PROJECT_DIR%\backend\requirements.txt"
 if %errorlevel% neq 0 (
     echo [错误] 后端依赖安装失败，请检查网络或在 PyCharm Terminal 手动执行。
@@ -30,7 +30,26 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-echo [3/4] 安装前端依赖...
+echo [3/5] 配置联邦学习环境...
+if not exist "%PROJECT_DIR%\federated-learning\.venv\Scripts\python.exe" (
+    echo 创建 federated-learning\.venv ...
+    py -3 -m venv "%PROJECT_DIR%\federated-learning\.venv"
+    if %errorlevel% neq 0 (
+        echo [错误] 无法创建联邦学习 Python 环境。
+        pause
+        exit /b 1
+    )
+) else (
+    echo 联邦学习虚拟环境已存在
+)
+call "%PROJECT_DIR%\federated-learning\.venv\Scripts\python.exe" -m pip install -r "%PROJECT_DIR%\federated-learning\requirements.txt"
+if %errorlevel% neq 0 (
+    echo [错误] 联邦学习依赖安装失败，请检查网络或在 PyCharm Terminal 手动执行。
+    pause
+    exit /b 1
+)
+
+echo [4/5] 安装前端依赖...
 cd /d "%PROJECT_DIR%\frontend"
 call npm ci
 if %errorlevel% neq 0 (
@@ -39,7 +58,7 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-echo [4/4] 初始化本地测试数据...
+echo [5/5] 初始化本地测试数据...
 cd /d "%PROJECT_DIR%\backend"
 call "%PROJECT_DIR%\backend\.venv\Scripts\python.exe" seed_test_data.py
 
@@ -47,6 +66,6 @@ echo.
 echo ==========================================
 echo 配置完成。默认数据库：backend\data_task.db
 echo 启动方式：scripts\start-dev.bat
-echo 联邦学习环境为可选模块，请参阅 federated-learning\README.md
+echo 联邦学习环境已配置，可直接在前端“联邦学习中心”一键运行
 echo ==========================================
 pause

@@ -1,6 +1,6 @@
 """数据集相关 Pydantic 模型"""
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional, List, Any
 from datetime import datetime
 
 
@@ -15,7 +15,7 @@ class DatasetCreate(BaseModel):
     tags: Optional[List[str]] = Field(default=[])
     quality_score: Optional[float] = None
     node_id: Optional[str] = None
-    columns_info: Optional[list] = None
+    columns_info: Optional[list | dict[str, Any]] = None
 
 
 class DatasetResponse(BaseModel):
@@ -31,7 +31,7 @@ class DatasetResponse(BaseModel):
     tags: List[str] = []
     quality_score: Optional[float] = None
     usage_count: int = 0
-    columns_info: Optional[list] = None
+    columns_info: Optional[list | dict[str, Any]] = None
     node_id: Optional[str] = None
     owner_id: Optional[str] = None
     created_at: Optional[datetime] = None

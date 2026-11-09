@@ -30,6 +30,7 @@ export type Permission =
 export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   buyer: [
     'module4:manage',
+    'dataasset:view',
     'task:publish',
     'task:view',
     'node:view',

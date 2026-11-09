@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import hashlib
 import os
 import shutil
 from pathlib import Path
@@ -282,17 +283,21 @@ def main() -> None:
     for filename, lines in files.items():
         (output_dir / filename).write_text("\n".join(lines) + "\n", encoding="utf-8")
 
+    config_hashes = {file.relative_to(generated_config_root).as_posix(): hashlib.sha256(file.read_bytes()).hexdigest()
+                     for file in generated_config_root.rglob("*.py") if file.is_file()}
     manifest = {
         "protocol_version": 3,
         "inference_dtype": args.torch_dtype,
         "max_out_len": args.max_out_len,
         "max_seq_len": args.max_seq_len,
+        "batch_size": args.batch_size,
         "config_dir": str(generated_config_root),
+        "config_sha256": config_hashes,
         "base_model": args.base_model,
         "models": {
             name: {
                 "path": path,
-                "exists_locally": True if name == "base" else Path(path).exists(),
+                "exists_locally": Path(path).is_dir(),
             }
             for name, path in models.items()
         },

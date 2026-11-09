@@ -32,6 +32,7 @@ import {
 } from '@ant-design/icons';
 
 import styles from './index.module.less';
+import { usePermission } from '@/hooks/usePermission';
 
 const { Content } = Layout;
 
@@ -60,6 +61,7 @@ const statusMap: Record<string, { color: string; text: string }> = {
 
 const MyTasks: React.FC = () => {
   const navigate = useNavigate();
+  const { hasPermission } = usePermission();
   const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
 
@@ -162,14 +164,14 @@ const MyTasks: React.FC = () => {
           <Button size="small" icon={<EyeOutlined />} onClick={() => navigate(`/app/tasks/${record.id}`)}>
             详情
           </Button>
-          {['training', 'completed', 'settled'].includes(record.status) && (
+          {['pending', 'matching', 'training', 'running', 'completed', 'settled'].includes(record.status) && (
             <Button
               size="small"
               type="primary"
               icon={<PlayCircleOutlined />}
               onClick={() => navigate(`/app/federated/training/${record.id}`)}
             >
-              训练
+              训练监控
             </Button>
           )}
         </Space>
@@ -179,14 +181,26 @@ const MyTasks: React.FC = () => {
 
   return (
     <Content className={styles.myTasks}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+      <div className={styles.pageHeader}>
         <div>
-          <h1 style={{ margin: 0 }}>我的任务</h1>
-          <p style={{ margin: 0, color: '#999' }}>管理您发布的联邦学习任务</p>
+          <div className={styles.eyebrow}>MY TASKS</div>
+          <h1>我的任务</h1>
+          <p>管理您发布的联邦学习任务，从这里进入唯一的训练监控流程。</p>
         </div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/app/tasks/publish')}>
-          发布任务
-        </Button>
+        {hasPermission('task:publish') && (
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/app/tasks/publish')}>
+            发布任务
+          </Button>
+        )}
+      </div>
+
+      <div className={styles.flowGuide}>
+        <div className={styles.flowGuideTitle}>任务状态怎么用？</div>
+        <div className={styles.flowGuideItems}>
+          <span><b>待开始</b> 等待节点加入</span>
+          <span><b>训练中</b> 进入训练监控查看进度</span>
+          <span><b>已完成</b> 查看最终训练结果</span>
+        </div>
       </div>
 
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>

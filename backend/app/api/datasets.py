@@ -43,8 +43,9 @@ async def list_datasets(
     data_type: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    query = db.query(Dataset)
+    query = db.query(Dataset).filter(Dataset.owner_id == str(current_user.id))
     if data_type:
         query = query.filter(Dataset.data_type == data_type)
     if search:
@@ -60,8 +61,8 @@ async def my_datasets(db: Session = Depends(get_db), current_user: User = Depend
 
 
 @router.get("/{dataset_id}", response_model=SuccessResponse[DatasetResponse], summary="获取数据集详情")
-async def get_dataset(dataset_id: str, db: Session = Depends(get_db)):
-    db_dataset = db.query(Dataset).filter(Dataset.id == dataset_id).first()
+async def get_dataset(dataset_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    db_dataset = db.query(Dataset).filter(Dataset.id == dataset_id, Dataset.owner_id == str(current_user.id)).first()
     if not db_dataset:
         raise ResourceNotFound(resource="数据集")
     return SuccessResponse(data=DatasetResponse.model_validate(db_dataset))
@@ -69,7 +70,7 @@ async def get_dataset(dataset_id: str, db: Session = Depends(get_db)):
 
 @router.put("/{dataset_id}", response_model=SuccessResponse[DatasetResponse], summary="更新数据集")
 async def update_dataset(dataset_id: str, update: DatasetUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    db_dataset = db.query(Dataset).filter(Dataset.id == dataset_id).first()
+    db_dataset = db.query(Dataset).filter(Dataset.id == dataset_id, Dataset.owner_id == str(current_user.id)).first()
     if not db_dataset:
         raise ResourceNotFound(resource="数据集")
     for key, value in update.model_dump(exclude_unset=True).items():
@@ -81,9 +82,11 @@ async def update_dataset(dataset_id: str, update: DatasetUpdate, db: Session = D
 
 @router.delete("/{dataset_id}", summary="删除数据集")
 async def delete_dataset(dataset_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    db_dataset = db.query(Dataset).filter(Dataset.id == dataset_id).first()
+    db_dataset = db.query(Dataset).filter(Dataset.id == dataset_id, Dataset.owner_id == str(current_user.id)).first()
     if not db_dataset:
         raise ResourceNotFound(resource="数据集")
+    if "preproject" in (db_dataset.tags or []):
+        raise HTTPException(status_code=409, detail="此资产关联治理版本，暂不支持单独删除资产记录。")
     db.delete(db_dataset)
     db.commit()
     return SuccessResponse(data={"message": "删除成功"})

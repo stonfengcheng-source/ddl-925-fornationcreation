@@ -18,6 +18,7 @@ vi.mock('lucide-react', () => ({
   Shield: () => <span data-testid="icon-shield" />,
   Settings: () => <span data-testid="icon-settings" />,
   Users: () => <span data-testid="icon-users" />,
+  Network: () => <span data-testid="icon-network" />,
   LogOut: () => <span data-testid="icon-logout" />,
   Menu: () => <span data-testid="icon-menu" />,
 }));
@@ -47,7 +48,7 @@ describe('Layout Component', () => {
       </MemoryRouter>
     );
     
-    expect(screen.getByText('Data Task Platform')).toBeInTheDocument();
+    expect(screen.getByText('数鉴')).toBeInTheDocument();
     expect(screen.getByText('任务大厅')).toBeInTheDocument();
     expect(screen.getAllByText('工作台').length).toBeGreaterThan(0);
     expect(screen.getByText('个人中心')).toBeInTheDocument();

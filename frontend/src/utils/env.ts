@@ -45,7 +45,9 @@ export const getBaseURL = (mode?: RuntimeMode): string => {
 
   switch (currentMode) {
     case 'desktop':
-      return 'http://localhost:8765/api';
+      // 8765 is the desktop local-node service; platform APIs (auth, module 4,
+      // and preproject data) are served by FastAPI on 8000.
+      return import.meta.env.VITE_PLATFORM_API_BASE_URL?.trim() || 'http://127.0.0.1:8000/api';
     case 'mock':
       return '/api'; // Mock服务拦截
     case 'web':

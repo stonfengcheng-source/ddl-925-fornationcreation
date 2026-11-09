@@ -22,12 +22,16 @@ const mainNavItems: NavItem[] = [
   { icon: ListTodo, label: '任务大厅', href: '/app/tasks', roles: ['buyer', 'admin'] },
   { icon: PlusCircle, label: '发布任务', href: '/app/tasks/publish', roles: ['buyer', 'admin'] },
   { icon: FolderOpen, label: '我的任务', href: '/app/my-tasks', roles: ['buyer', 'admin'] },
-  { icon: Sparkles, label: '数据筛选与模型验证', href: '/app/module4', roles: ['buyer', 'admin'] },
 ];
 
 // 数据管理菜单（仅管理员在Web端可见，提供方功能已迁移至桌面客户端）
 const dataNavItems: NavItem[] = [
-  { icon: HardDrive, label: '我的数据资产', href: '/app/data-assets', roles: ['admin'] },
+  { icon: HardDrive, label: '我的数据资产', href: '/app/data-assets', roles: ['buyer', 'admin'] },
+  { icon: HardDrive, label: '数据治理与质量评价', href: '/app/data-governance', roles: ['buyer', 'admin'] },
+  { icon: Sparkles, label: '训练实验与效果验证', href: '/app/model-experiments', roles: ['buyer', 'admin'] },
+];
+const platformNavItems: NavItem[] = [
+  { icon: Settings, label: '运行环境与资源', href: '/app/resources', roles: ['buyer', 'admin'] },
   { icon: Sparkles, label: '推荐任务', href: '/app/matching', roles: ['admin'] },
   { icon: ShieldCheck, label: '质量规则', href: '/app/quality-rules', roles: ['admin'] },
   { icon: HardDrive, label: '边缘节点', href: '/app/edge-nodes', roles: ['admin'] },
@@ -70,6 +74,7 @@ export function Layout() {
   // 根据角色过滤菜单项
   const filteredMainNavItems = React.useMemo(() => filterNavItems(mainNavItems, role), [role]);
   const filteredDataNavItems = React.useMemo(() => filterNavItems(dataNavItems, role), [role]);
+  const filteredPlatformNavItems = React.useMemo(() => filterNavItems(platformNavItems, role), [role]);
   const filteredPrivacyNavItems = React.useMemo(() => filterNavItems(privacyNavItems, role), [role]);
   const filteredUserNavItems = React.useMemo(() => filterNavItems(userNavItems, role), [role]);
   const filteredAdminNavItems = React.useMemo(() => filterNavItems(adminNavItems, role), [role]);
@@ -78,6 +83,7 @@ export function Layout() {
   const allNavItems = [
     ...filteredMainNavItems,
     ...filteredDataNavItems,
+    ...filteredPlatformNavItems,
     ...filteredPrivacyNavItems,
     ...filteredUserNavItems,
     ...filteredAdminNavItems,
@@ -114,7 +120,7 @@ export function Layout() {
               <div className="h-5 w-5 rounded bg-text-primary text-white flex items-center justify-center text-[10px] font-bold">
                 N
               </div>
-              <span className="truncate text-sm">Data Task Platform</span>
+              <span className="truncate text-sm">数鉴</span>
             </div>
             {!isSidebarOpen && <Menu className="h-4 w-4" />}
           </button>
@@ -124,7 +130,7 @@ export function Layout() {
           {/* 主导航 */}
           <div className="space-y-0.5">
             {isSidebarOpen && filteredMainNavItems.length > 0 && (
-              <div className="px-3 py-1 text-xs font-medium text-text-secondary/60">工作台</div>
+              <div className="px-3 py-1 text-xs font-medium text-text-secondary/60">工作空间</div>
             )}
             {filteredMainNavItems.map((item) => {
               const active = isNavActive(item.href);
@@ -151,7 +157,7 @@ export function Layout() {
           {/* 数据管理 */}
           {filteredDataNavItems.length > 0 && (
             <div className="space-y-0.5">
-              {isSidebarOpen && <div className="px-3 py-1 text-xs font-medium text-text-secondary/60">数据管理</div>}
+              {isSidebarOpen && <div className="px-3 py-1 text-xs font-medium text-text-secondary/60">数据建设</div>}
               {filteredDataNavItems.map((item) => {
                 const active = isNavActive(item.href);
                 return (
@@ -174,6 +180,14 @@ export function Layout() {
               })}
             </div>
           )}
+
+          {filteredPlatformNavItems.length > 0 && <div className="space-y-0.5">
+            {isSidebarOpen && <div className="px-3 py-1 text-xs font-medium text-text-secondary/60">平台管理</div>}
+            {filteredPlatformNavItems.map((item) => <button key={item.href} onClick={() => navigate(item.href)} title={!isSidebarOpen ? item.label : undefined}
+              className={cn('flex w-full items-center gap-3 rounded-sm px-3 py-1.5 text-sm transition-colors', isNavActive(item.href) ? 'bg-background-tertiary text-text font-medium' : 'text-text-secondary hover:bg-background-tertiary hover:text-text', !isSidebarOpen && 'justify-center px-2')}>
+              <item.icon className="h-4 w-4 shrink-0" />{isSidebarOpen && <span>{item.label}</span>}
+            </button>)}
+          </div>}
 
           {/* 隐私保护 */}
           {filteredPrivacyNavItems.length > 0 && (

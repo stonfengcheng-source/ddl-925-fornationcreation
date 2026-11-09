@@ -43,7 +43,7 @@ export const getPreEstimate = async (
 export const startTraining = async (
   taskId: string
 ): Promise<{ data: { message: string; task_id: string }; meta?: Record<string, unknown> }> => {
-  return request.post(`/training/${taskId}/start`) as Promise<{
+  return request.post(`/training/${taskId}/start?mode=demo`) as Promise<{
     data: { message: string; task_id: string };
     meta?: Record<string, unknown>;
   }>;

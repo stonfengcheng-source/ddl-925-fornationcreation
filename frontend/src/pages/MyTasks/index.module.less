@@ -13,23 +13,66 @@
   align-items: center;
   margin-bottom: 24px;
 
+  .eyebrow {
+    margin-bottom: 7px;
+    color: #1e6fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+  }
+
   .headerLeft {
     h1 {
       margin: 0 0 8px 0;
-      font-size: 24px;
-      font-weight: 600;
-      color: #262626;
+      color: #172033;
+      font-size: 30px;
+      font-weight: 750;
+      letter-spacing: -0.02em;
     }
 
     p {
-      color: #8c8c8c;
+      color: #667085;
       margin: 0;
+      font-size: 13px;
     }
   }
 
   .headerActions {
     display: flex;
     gap: 12px;
+  }
+}
+
+.flowGuide {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
+  padding: 15px 18px;
+  border: 1px solid #dce9ff;
+  border-radius: 12px;
+  background: #f7faff;
+}
+
+.flowGuideTitle {
+  flex: none;
+  color: #1e6fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.flowGuideItems {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px 22px;
+  color: #667085;
+  font-size: 12px;
+
+  b {
+    margin-right: 4px;
+    color: #344054;
   }
 }
 
@@ -348,6 +391,15 @@
         flex: 1;
       }
     }
+  }
+
+  .flowGuide {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .flowGuideItems {
+    justify-content: flex-start;
   }
 
   .taskCard {

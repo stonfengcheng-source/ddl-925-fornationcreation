@@ -21,6 +21,7 @@ yarn-error.log
 dist/
 build/
 .vite/
+.pnpm-store/
 
 # IDE
 .vscode/

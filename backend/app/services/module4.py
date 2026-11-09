@@ -3,11 +3,15 @@ from __future__ import annotations
 
 import os
 import json
+import ast
+import re
 import importlib.util
 import subprocess
 import sys
 import threading
 import time
+import uuid
+import hashlib
 from collections import deque
 from pathlib import Path
 from typing import Any
@@ -139,6 +143,120 @@ def configured_evaluation_models() -> list[str]:
         return []
 
 
+def local_model_status(value: Any) -> tuple[bool, str]:
+    """Only treat a model as available when a local model snapshot has config and weights."""
+    text = str(value or "").strip()
+    candidates = [Path(text).expanduser()] if text else []
+    if text and "/" in text and not Path(text).is_absolute():
+        cache = Path(os.getenv("HF_HOME", str(Path.home() / ".cache" / "huggingface"))) / "hub" / ("models--" + text.replace("/", "--")) / "snapshots"
+        if cache.is_dir(): candidates.extend(path for path in cache.iterdir() if path.is_dir())
+    for folder in candidates:
+        tokenizer = any((folder / name).is_file() for name in ("tokenizer.json", "tokenizer.model", "tokenizer_config.json", "vocab.json"))
+        if folder.is_dir() and (folder / "config.json").is_file() and tokenizer and any([*folder.glob("*.safetensors"), *folder.glob("pytorch_model*.bin")]):
+            return True, "本地模型配置和权重文件存在"
+    return False, "未找到完整本地模型，请填写包含模型配置、权重和分词器的目录。"
+
+
+def evaluation_preflight(config: dict[str, Any], manifest_path: Path | None = None) -> dict[str, Any]:
+    """Validate current evaluation prerequisites without installing or running a model."""
+    checks: list[dict[str, Any]] = []
+    def add(key: str, ready: bool, message: str) -> None:
+        checks.append({"key": key, "ready": bool(ready), "message": message})
+    manifest_path = manifest_path or PROJECT_ROOT / "experiments/module4/evaluation/eval_manifest.json"
+    manifest: dict[str, Any] = {}
+    if manifest_path.is_file():
+        try:
+            value = json.loads(manifest_path.read_text(encoding="utf-8"))
+            if isinstance(value, dict): manifest = value
+        except (OSError, ValueError): pass
+    protocol = manifest.get("protocol_version")
+    valid = bool(manifest and isinstance(protocol, int) and not isinstance(protocol, bool) and protocol >= 3 and isinstance(manifest.get("commands"), dict)
+                 and isinstance(manifest.get("models"), dict) and manifest.get("commands") and isinstance(manifest.get("selected_subjects"), list) and manifest.get("selected_subjects") and all(isinstance(item, str) for item in manifest.get("selected_subjects", []))
+                 and set(manifest.get("commands", {})).issubset(set(MODEL_NAMES)) and all(isinstance(item, dict) and isinstance(item.get("path"), str) for item in manifest.get("models", {}).values())
+                 and manifest.get("base_model") and manifest.get("workspace_dir") and manifest.get("run_dir") and manifest.get("config_dir"))
+    add("manifest", valid, "评测清单已读取" if valid else "评测清单缺失或无效，请先点击“生成评测配置”。")
+    if valid:
+        try:
+            subjects, limit = _selection.resolve_selection(str(config.get("eval_mode", "quick")).lower(),
+                config.get("eval_subjects"), config.get("eval_samples_per_subject", 10), config.get("eval_all_questions", False))
+            selected_workspace = Path(str(config.get("eval_workspace") or "experiments/module4/opencompass-workspace"))
+            if not selected_workspace.is_absolute(): selected_workspace = PROJECT_ROOT / selected_workspace
+            same = (manifest.get("selected_subjects") == subjects and manifest.get("selection_fingerprint") == _selection.selection_fingerprint(subjects, limit)
+                    and manifest.get("max_out_len") == _integer(config.get("eval_max_out_len", 512), "最大输出长度", 64, 1024)
+                    and manifest.get("batch_size") == _integer(config.get("eval_batch_size", 1), "评测批量大小", 1, 128)
+                    and manifest.get("inference_dtype") == ("float16" if config.get("precision") == "fp16" else "bfloat16")
+                    and Path(str(manifest.get("workspace_dir", ""))).resolve() == selected_workspace.resolve()
+                    and manifest.get("base_model") == str(config.get("base_model", "Qwen/Qwen2.5-0.5B-Instruct")))
+        except (ValueError, TypeError): same = False
+        add("manifest_matches", same, "配置与清单一致" if same else "评测参数或基础模型已变化，请重新生成评测配置。")
+        root = Path(str(manifest.get("config_dir") or ""))
+        expected_hashes = manifest.get("config_sha256")
+        workspace_root = Path(str(manifest.get("workspace_dir"))).resolve()
+        generated = bool(root.is_dir()) and root.resolve().is_relative_to(workspace_root) and isinstance(expected_hashes, dict) and bool(expected_hashes)
+        if generated:
+            for relative, expected in expected_hashes.items():
+                candidate = (root / str(relative)).resolve()
+                try:
+                    if not candidate.is_relative_to(root.resolve()) or not candidate.is_file() or hashlib.sha256(candidate.read_bytes()).hexdigest() != expected:
+                        generated = False; break
+                    ast.parse(candidate.read_text(encoding="utf-8"))
+                except (OSError, UnicodeError, SyntaxError):
+                    generated = False; break
+        for name, command in manifest.get("commands", {}).items():
+            if not isinstance(command, list) or "--models" not in command or "--datasets" not in command:
+                generated = False; continue
+            try:
+                model_config = str(command[command.index("--models") + 1])
+                dataset_start = command.index("--datasets") + 1
+                datasets = []
+                for dataset_name in command[dataset_start:]:
+                    if str(dataset_name).startswith("--"): break
+                    datasets.append(str(dataset_name))
+                generated &= "--config-dir" in command and Path(str(command[command.index("--config-dir") + 1])).resolve() == root.resolve()
+                generated &= "--work-dir" in command and Path(str(command[command.index("--work-dir") + 1])).resolve() == (Path(str(manifest["run_dir"])) / name).resolve()
+                generated &= bool(re.fullmatch(r"[A-Za-z0-9_-]+", model_config)) and bool(datasets) and (root / "models" / "module4" / f"{model_config}.py").is_file()
+                generated &= all(re.fullmatch(r"[A-Za-z0-9_-]+", name) and (root / "datasets" / "module4" / f"{name}.py").is_file() for name in datasets)
+                generated &= f"models/module4/{model_config}.py" in (expected_hashes or {}) and all(f"datasets/module4/{item}.py" in (expected_hashes or {}) for item in datasets)
+            except (IndexError, ValueError): generated = False
+        add("generated_configs", generated, "模型与数据配置文件存在" if generated else "评测配置文件不完整，请重新生成配置。")
+    model_ok, model_message = local_model_status(config.get("base_model", "Qwen/Qwen2.5-0.5B-Instruct"))
+    add("base_model", model_ok, model_message)
+    requested = str(config.get("eval_model", "all")).lower()
+    if valid:
+        selected = list(manifest.get("commands", {})) if requested == "all" else [requested]
+        models_ready = bool(selected) and all(name in manifest["commands"] and (name == "base" or local_model_status(manifest.get("models", {}).get(name, {}).get("path"))[0]) for name in selected)
+        add("selected_models", models_ready, "所选模型已配置" if models_ready else "所选模型缺失或未加入清单，请检查模型并重新生成配置。")
+    env_dir = Path(str(config.get("opencompass_env") or r"D:\opencompass_env")).expanduser()
+    env_python = next((p for p in (env_dir / "python.exe", env_dir / "Scripts/python.exe", env_dir / "bin/python") if p.is_file()), None)
+    cli = next((p for p in (env_dir / "Scripts/opencompass.exe", env_dir / "bin/opencompass") if p.is_file()), None)
+    add("evaluation_python", bool(env_python), "评测 Python 存在" if env_python else "评测环境不存在，请先准备独立的 OpenCompass 环境。")
+    add("opencompass_cli", bool(cli), "OpenCompass 命令存在" if cli else "未找到 OpenCompass，需在独立评测环境安装。")
+    dependencies = False; cuda_available = False
+    if env_python and cli:
+        probe = "import importlib.util,json; ok=all(importlib.util.find_spec(x) is not None for x in ['torch','transformers','sentencepiece','opencompass']); import torch; print(json.dumps({'ok':ok,'cuda':bool(torch.cuda.is_available())}))"
+        try:
+            result = subprocess.run([str(env_python), "-c", probe], capture_output=True, text=True, timeout=15, check=False)
+            info = json.loads(result.stdout.strip().splitlines()[-1]) if result.returncode == 0 else {}
+            dependencies = bool(info.get("ok")); cuda_available = bool(info.get("cuda"))
+        except (OSError, ValueError, IndexError, subprocess.SubprocessError): pass
+    add("evaluation_dependencies", dependencies, "评测核心依赖可定位" if dependencies else "评测核心依赖尚未就绪，请检查 OpenCompass、PyTorch、Transformers 和 SentencePiece。")
+    add("evaluation_cuda", cuda_available, "评测环境 CUDA 可用" if cuda_available else "评测环境的 PyTorch 尚不能使用 CUDA。")
+    workspace = Path(str(config.get("eval_workspace") or "experiments/module4/opencompass-workspace"))
+    workspace = workspace if workspace.is_absolute() else PROJECT_ROOT / workspace
+    subjects = manifest.get("selected_subjects", []) if valid else []
+    families = {str(subject).split(":", 1)[0] for subject in subjects}
+    benchmark_ready = bool(families) and all((workspace / "data" / family).is_dir() and any(path.suffix.lower() in {".csv", ".json", ".jsonl", ".parquet"} for path in (workspace / "data" / family).rglob("*") if path.is_file()) for family in families)
+    add("benchmark_data", benchmark_ready, "所选评测数据目录存在" if benchmark_ready else "评测题库尚未确认，请先准备所选基准的数据目录。")
+    return {"ready": all(item["ready"] for item in checks), "checks": checks}
+
+
+def evaluation_fingerprint(config: dict[str, Any]) -> str:
+    path = PROJECT_ROOT / "experiments/module4/evaluation/eval_manifest.json"
+    manifest_hash = hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else "missing"
+    fields = {key: config.get(key) for key in (*EVAL_PARAMETERS, "eval_model")}
+    return hashlib.sha256(json.dumps({"config": fields, "manifest": manifest_hash}, sort_keys=True, default=str).encode("utf-8")).hexdigest()
+
+
 def select_evaluation_models(config: dict[str, Any], sample_count: int, use_manifest: bool = False) -> list[str]:
     model = str(config.get("eval_model", "all")).lower()
     if model not in EVAL_MODELS:
@@ -258,6 +376,8 @@ def build_action_command(action: str, config: dict[str, Any]) -> tuple[list[str]
         ], f"生成 OpenCompass 评测清单：{eval_mode}（{', '.join(selected)}）"
     if action in {"eval_dry", "eval_run", "eval_score"}:
         manifest_path = PROJECT_ROOT / "experiments/module4/evaluation/eval_manifest.json"
+        if not manifest_path.is_file():
+            raise ValueError("评测清单不存在，请先点击“生成评测配置”，再检查模型、题库和 OpenCompass 环境。")
         if manifest_path.is_file():
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             subjects, sample_limit = _selection.resolve_selection(
@@ -323,6 +443,8 @@ class TaskManager:
         self.current_targets: set[str] = set()
         self.current_config: dict[str, Any] = {}
         self.outputs_before: dict[str, tuple] = {}
+        self.log_path: Path | None = None
+        self.successful_dry_run: str | None = None
 
     def _output_stamps(self) -> dict[str, tuple]:
         """仅记录产物元数据，确认本次进程确实更新了文件。"""
@@ -419,7 +541,11 @@ class TaskManager:
 
     def append(self, message: str) -> None:
         with self.lock:
-            self.logs.append(message.rstrip("\r\n"))
+            line = message.rstrip("\r\n")
+            self.logs.append(line)
+            if self.log_path:
+                with self.log_path.open("a", encoding="utf-8") as stream:
+                    stream.write(line + "\n")
 
     def start(self, command: list[str], label: str, action: str | None = None, config: dict[str, Any] | None = None) -> None:
         with self.lock:
@@ -427,8 +553,11 @@ class TaskManager:
                 raise RuntimeError(f"已有任务正在运行：{self.label}")
             self._begin_progress(action, dict(config or {}), command)
             self.logs.clear()
+            log_dir = PROJECT_ROOT / "experiments" / "module4" / "logs"
+            log_dir.mkdir(parents=True, exist_ok=True)
+            self.log_path = log_dir / f"task-{uuid.uuid4().hex}.log"
+            self.log_path.write_text(f"任务：{label}\n", encoding="utf-8")
             self.logs.append(f"准备执行：{label}")
-            self.logs.append(f"工作目录：{PROJECT_ROOT}")
             self.status = "running"
             self.label = label
             self.exit_code = None
@@ -478,6 +607,9 @@ class TaskManager:
                     self.status = "failed"
                     self.logs.append(f"任务执行失败，退出码：{code}")
                 self.exit_code = code
+                if self.log_path:
+                    with self.log_path.open("a", encoding="utf-8") as stream:
+                        stream.write(f"任务结束，退出码：{code}\n")
                 self.finished_at = time.time()
                 self.process = None
                 if self.job:
@@ -486,6 +618,8 @@ class TaskManager:
                     self.job = None
                 if self.status == "success" and self.current_action:
                     action = self.current_action
+                    if action == "eval_dry":
+                        self.successful_dry_run = evaluation_fingerprint(self.current_config)
                     outputs_after = self._output_stamps()
                     fresh = {name for name, stamps in outputs_after.items()
                              if all(value and value != before for value, before in zip(stamps, self.outputs_before.get(name, (None,) * len(stamps))))}
@@ -502,6 +636,9 @@ class TaskManager:
             with self.lock:
                 self.status = "failed"
                 self.logs.append(f"无法启动任务：{type(exc).__name__}: {exc}")
+                if self.log_path:
+                    with self.log_path.open("a", encoding="utf-8") as stream:
+                        stream.write(f"无法启动任务：{type(exc).__name__}: {exc}\n")
                 self.exit_code = -1
                 self.finished_at = time.time()
                 self.process = None
@@ -547,14 +684,28 @@ class TaskManager:
 
     def snapshot(self) -> dict[str, Any]:
         with self.lock:
+            visible = []
+            for line in self.logs:
+                if line.lstrip().startswith(("Traceback (most recent call last):", 'File "')):
+                    continue
+                if line.lstrip().startswith(("FileNotFoundError:", "ModuleNotFoundError:", "RuntimeError:", "ValueError:")):
+                    visible.append("任务执行失败，请检查前置条件；完整日志已保存在本机。")
+                    continue
+                line = re.sub(r"(?<![A-Za-z0-9])[A-Za-z]:[\\/][^\s'\"]+", "[本地路径]", line)
+                line = re.sub(r"(?:(?<=\s)|(?<=[:：'\"]))/(?!/)[^\s'\"]+", "[本地路径]", line)
+                visible.append(line)
             return {
                 "status": self.status,
                 "label": self.label,
                 "exit_code": self.exit_code,
                 "started_at": self.started_at,
                 "finished_at": self.finished_at,
-                "logs": "\n".join(self.logs),
+                "logs": "\n".join(visible),
             }
+
+    def dry_run_matches(self, config: dict[str, Any]) -> bool:
+        with self.lock:
+            return self.successful_dry_run == evaluation_fingerprint(config)
 
 
 TASKS = TaskManager()

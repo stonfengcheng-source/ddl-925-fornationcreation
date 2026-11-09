@@ -81,9 +81,9 @@ def test_platform_validates_100_raw_samples_with_pending_groups_left_blank(clien
     assert {"rule", "ours"}.issubset(state["pending_variants"])
     training_command, _ = runtime.build_action_command("train", {"sample_count": 100, "variant": "all"})
     assert training_command[training_command.index("--variants") + 1:] == ["raw"]
-    eval_command, _ = runtime.build_action_command("eval_dry", {"sample_count": 100, "eval_model": "all"})
-    assert eval_command[eval_command.index("--models") + 1:eval_command.index("--env-dir")] == ["base"]
-    assert connection.post("/api/module4/run", json={"action": "train", "config": {"sample_count": 100, "variant": "ours"}}).status_code == 400
+    with pytest.raises(ValueError, match="评测清单"):
+        runtime.build_action_command("eval_dry", {"sample_count": 100, "eval_model": "all"})
+    assert connection.post("/api/module4/run", json={"action": "train", "config": {"sample_count": 100, "variant": "ours"}}).status_code == 409
     assert not (tmp_path / "experiments/module4/data/ours_100.jsonl").exists()
     assert connection.post("/api/module4/run", json={"action": "validate_data", "config": {"sample_count": 100}}).status_code == 200
     assert wait_for_task(connection)["status"] == "success"
@@ -108,6 +108,31 @@ def test_existing_platform_roles_are_enforced(client):
     app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(user_type="provider")
     assert connection.get("/api/module4/status").status_code == 403
     assert connection.post("/api/module4/run", json={"action": "build_data"}).status_code == 403
+
+
+def test_status_explains_missing_training_dependencies_without_exposing_paths(client, tmp_path, monkeypatch):
+    connection, _, _ = client
+    executable = str(tmp_path / "python.exe")
+    monkeypatch.setattr(module4, "TRAINING_PYTHON", Path(executable))
+    report_path = tmp_path / "experiments" / "module4" / "environment_report.json"
+    report_path.parent.mkdir(parents=True)
+    report_path.write_text(json.dumps({
+        "python": {"version": "3.10.20", "executable": executable},
+        "packages": {name: {"available": False, "version": None}
+                     for name in ("torch", "transformers", "datasets", "peft", "llamafactory")},
+        "commands": {"llamafactory-cli": None},
+        "cuda": {"available": False},
+        "nvidia_smi": {"gpus": ["GeForce Test"]},
+    }), encoding="utf-8")
+
+    response = connection.get("/api/module4/status")
+    assert response.status_code == 200
+    environment = response.json()["training_environment"]
+    assert environment["training_ready"] is False
+    assert environment["interpreter_matches"] is True
+    assert environment["missing_packages"] == ["torch", "transformers", "datasets", "peft", "llamafactory"]
+    assert environment["gpus"] == ["GeForce Test"]
+    assert "python.exe" not in json.dumps(environment)
 
 
 def test_stop_pending_job_before_process_creation(monkeypatch):
@@ -177,7 +202,9 @@ def test_badcase_export_uses_selected_python_and_model(client, tmp_path):
     assert task["status"] == "success", task["logs"]
     output = tmp_path / "experiments/module4/results/ours_badcases.jsonl"
     assert json.loads(output.read_text(encoding="utf-8").strip())["sample_id"] == "sample-1"
-    assert connection.post("/api/module4/run", json={"action": "train", "config": {"training_python": str(tmp_path / "missing.exe")}}).status_code == 400
+    rejected = connection.post("/api/module4/run", json={"action": "train", "config": {"training_python": str(tmp_path / "missing.exe")}})
+    assert rejected.status_code == 409
+    assert rejected.json()["detail"]["reasons"]
 
 
 
@@ -225,8 +252,8 @@ def test_custom_evaluation_generates_selected_subjects_and_rejects_stale_manifes
     assert "run" in command
     for changed in [{"eval_samples_per_subject": 8}, {"eval_subjects": ["ceval:law"]}, {"eval_all_questions": True}]:
         response = connection.post("/api/module4/run", json={"action": "eval_run", "config": {**config, **changed}})
-        assert response.status_code == 400
-        assert "重新生成评测配置" in response.json()["detail"]
+        assert response.status_code == 409
+        assert any("重新生成评测配置" in reason for reason in response.json()["detail"]["reasons"])
 
 
 @pytest.mark.parametrize("changed", [

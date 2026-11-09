@@ -11,9 +11,9 @@ import TaskPublish from '@/pages/TaskPublish';
 import MyTasks from '@/pages/MyTasks';
 import QualityReport from '@/pages/marketplace/QualityReport';
 import TrainingMonitor from '@/pages/federated/TrainingMonitor';
-import RevenueShare from '@/pages/federated/RevenueShare';
+import FederatedLearning from '@/pages/federated';
 import PrivacyBudgetDashboard from '@/pages/PrivacyBudget';
-import Module4 from '@/pages/Module4';
+import Module4 from '@/pages/Module4/ExperimentsPage';
 import QualityRuleEditor from '@/pages/quality-rules/Editor';
 import QualityRuleList from '@/pages/quality-rules';
 import NodeList from '@/pages/edge-nodes/NodeList';
@@ -29,8 +29,11 @@ import Security from '@/pages/Profile/Security';
 import Wallet from '@/pages/Profile/Wallet';
 import Notifications from '@/pages/Notifications';
 import AdminDashboard from '@/pages/Admin/Dashboard';
+import PreprojectData from '@/pages/PreprojectData';
 import UserManagement from '@/pages/Admin/UserManagement';
 import TaskManagement from '@/pages/Admin/TaskManagement';
+import Resources from '@/pages/Resources';
+import LegacyBusinessRedirect from '@/components/common/LegacyBusinessRedirect';
 
 // 错误页面
 const Forbidden = () => (
@@ -156,25 +159,36 @@ export const routes: RouteObject[] = [
         path: 'federated',
         children: [
           {
-            path: 'training/:taskId',
-            element: <TrainingMonitor />,
+            index: true,
+            element: <FederatedLearning />,
           },
           {
-            path: 'revenue/:taskId',
-            element: <RevenueShare />,
+            path: 'training/:taskId',
+            element: <TrainingMonitor />,
           },
         ],
       },
 
       // 数据筛选与模型验证
       {
-        path: 'module4',
+        path: 'model-experiments',
         element: (
           <AuthGuard requiredPermission="module4:manage">
             <Module4 />
           </AuthGuard>
         ),
       },
+      {
+        path: 'data-governance/:section?',
+        element: (
+          <AuthGuard requiredPermission="module4:manage">
+            <PreprojectData />
+          </AuthGuard>
+        ),
+      },
+      { path: 'module4', element: <LegacyBusinessRedirect oldPath="/app/module4" newPath="/app/model-experiments" /> },
+      { path: 'preproject-data/:section?', element: <LegacyBusinessRedirect oldPath="/app/preproject-data" newPath="/app/data-governance" /> },
+      { path: 'resources', element: <AuthGuard requiredPermission="module4:manage"><Resources /></AuthGuard> },
 
       // 隐私预算模块
       {

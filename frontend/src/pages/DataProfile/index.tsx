@@ -37,6 +37,7 @@ import {
   EyeOutlined,
 } from '@ant-design/icons';
 import { Card as UICard } from '@/components/ui/Card';
+import { useUserStore } from '@/store/useUserStore';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -56,7 +57,10 @@ interface DataAsset {
     dataType: string;
   };
   domainTags: string[];
-  qualityScore: number;
+  qualityScore: number | null;
+  versionCount?: number;
+  governedCount?: number;
+  governanceStatus?: string | null;
   status: AssetStatus;
   matchedTaskCount: number;
   currentTaskId?: string;
@@ -104,6 +108,7 @@ const DataProfileList: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [assets, setAssets] = useState<DataAsset[]>([]);
+  const role = useUserStore(state => state.user?.role);
   const [loading, setLoading] = useState(true);
 
   // 从后端获取数据资产（我的数据）
@@ -112,11 +117,13 @@ const DataProfileList: React.FC = () => {
       setLoading(true);
       try {
         const res: any = await request.get('/datasets/my');
+        const summary = role === 'provider' ? {items:[]} : await request.get('/preproject-data/asset-summary') as unknown as {items:Array<{source_id:string;version_count:number;governed_count:number;latest_status:string|null}>};
+        const bySource = new Map(summary.items.map(item => [item.source_id,item]));
         const list = res?.data || res || [];
         const mapped: DataAsset[] = (Array.isArray(list) ? list : []).map((d: any) => ({
           id: d.id,
-          name: d.name,
-          description: d.description || '',
+          name: (d.tags || []).includes('synthetic_example') ? '教育问答基础数据集' : d.name,
+          description: String(d.description || '').replace('预立项本地数据源', '本地数据资产'),
           localPath: '',
           schema: {
             sampleCount: d.row_count || 0,
@@ -124,12 +131,23 @@ const DataProfileList: React.FC = () => {
             dataType: d.data_type || 'csv',
           },
           domainTags: d.tags || [],
-          qualityScore: d.quality_score || 0,
+          qualityScore: d.quality_score ?? null,
+          versionCount: bySource.get(d.id)?.version_count,
+          governedCount: bySource.get(d.id)?.governed_count,
+          governanceStatus: bySource.get(d.id)?.latest_status,
           status: (d.status === 'ready' ? 'available' : d.status === 'in-use' ? 'in-use' : 'available') as AssetStatus,
           matchedTaskCount: d.usage_count || 0,
           createdAt: d.created_at || '',
         }));
-        setAssets(mapped);
+        const seenExamples = new Set<string>();
+        const hasDefault = mapped.some(item => item.domainTags.includes('synthetic_example'));
+        setAssets(mapped.filter(item => {
+          const example = item.domainTags.includes('synthetic_example') || item.name === 'TEST-ONLY/demo';
+          if (!example) return true;
+          if (hasDefault && !item.domainTags.includes('synthetic_example')) return false;
+          if (seenExamples.has('example')) return false;
+          seenExamples.add('example'); return true;
+        }));
       } catch {
         setAssets([]);
       } finally {
@@ -137,7 +155,7 @@ const DataProfileList: React.FC = () => {
       }
     };
     fetchAssets();
-  }, []);
+  }, [role]);
 
   // 过滤数据
   const filteredAssets = useMemo(() => {
@@ -153,19 +171,21 @@ const DataProfileList: React.FC = () => {
   const stats = useMemo(() => {
     const total = assets.length;
     const totalSamples = assets.reduce((sum, a) => sum + a.schema.sampleCount, 0);
-    const avgQuality = assets.reduce((sum, a) => sum + a.qualityScore, 0) / total || 0;
+    const governed = assets.reduce((sum, a) => sum + (a.governedCount ?? 0), 0);
+    const waiting = assets.filter(a => a.domainTags.includes('preproject') && !a.governanceStatus).length;
     const inUseCount = assets.filter((a) => a.status === 'in-use').length;
-    return { total, totalSamples, avgQuality, inUseCount };
+    return { total, totalSamples, governed, waiting, inUseCount };
   }, [assets]);
 
   // 前往登记
   const goToCreate = () => {
-    navigate('/app/data-assets/create');
+    navigate('/app/data-governance/sources');
   };
 
   // 查看详情
-  const viewDetail = (_id: string) => {
-    message.info('详情功能开发中...');
+  const viewDetail = (id: string) => {
+    if (assets.find(item => item.id === id)?.domainTags.includes('preproject')) navigate(`/app/data-governance/sources?source_id=${encodeURIComponent(id)}`);
+    else message.info('该历史资产尚未关联可预览的治理文件。');
   };
 
   // 查看匹配任务
@@ -213,9 +233,9 @@ const DataProfileList: React.FC = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="平均质量分"
-              value={Math.round(stats.avgQuality * 100)}
-              suffix="分"
+              title="已治理版本"
+              value={stats.governed}
+              suffix="个"
               prefix={<SafetyOutlined />}
             />
           </Card>
@@ -223,8 +243,8 @@ const DataProfileList: React.FC = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="参与中任务"
-              value={stats.inUseCount}
+              title="待治理数据"
+              value={stats.waiting}
               suffix="个"
               prefix={<CheckCircleOutlined />}
             />
@@ -261,7 +281,7 @@ const DataProfileList: React.FC = () => {
           {filteredAssets.map((asset) => {
             const status = statusConfig[asset.status];
             return (
-              <Col span={8} key={asset.id}>
+              <Col xs={24} md={12} xl={8} key={asset.id}>
                 <UICard variant="default" hoverEffect className="h-full">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
@@ -287,9 +307,9 @@ const DataProfileList: React.FC = () => {
                       <div className="font-medium">{asset.schema.featureCount}</div>
                     </div>
                     <div>
-                      <Text type="secondary" className="text-xs">质量分</Text>
+                      <Text type="secondary" className="text-xs">数据版本</Text>
                       <div className="font-medium text-green-600">
-                        {Math.round(asset.qualityScore * 100)}
+                        {asset.versionCount ?? '—'}
                       </div>
                     </div>
                   </div>
@@ -301,7 +321,7 @@ const DataProfileList: React.FC = () => {
                         const config = domainTagMap[tag];
                         return (
                           <Tag key={tag} color={config?.color || 'default'}>
-                            {config?.label || tag}
+                            {config?.label || ({preproject:'治理数据', raw:'原始数据', local_import:'本地导入', provenance_unverified:'来源待核验', synthetic_example:'合成示例', synthetic_classification:'合成分类数据'} as Record<string,string>)[tag] || tag}
                           </Tag>
                         );
                       })}
@@ -334,6 +354,8 @@ const DataProfileList: React.FC = () => {
 
                   {/* 操作按钮 */}
                   <div className="flex gap-2">
+                    {asset.domainTags.includes('preproject') && <Button onClick={() => navigate(`/app/data-governance/sources?source_id=${encodeURIComponent(asset.id)}`)}>开始治理</Button>}
+                    {asset.domainTags.includes('preproject') && <Button onClick={() => navigate(`/app/data-governance/versions?source_id=${encodeURIComponent(asset.id)}`)}>查看治理版本</Button>}
                     <Button
                       icon={<EyeOutlined />}
                       onClick={() => viewDetail(asset.id)}

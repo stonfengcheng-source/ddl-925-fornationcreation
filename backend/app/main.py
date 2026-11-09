@@ -5,12 +5,15 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from app.api import tasks, auth, datasets, nodes, training, wallet, profile, notifications, admin, module4
+from app.api import tasks, auth, datasets, nodes, training, wallet, profile, notifications, admin, module4, preproject_data, baseline
 from app.services.module4 import TASKS as MODULE4_TASKS
 from contextlib import asynccontextmanager
 from app.core.database import engine, Base, init_db_extensions, ensure_schema_up_to_date
 from app.core.exceptions import APIException
 from datetime import datetime
+from app.core.config import APP_ENV, PASSWORDLESS_AUTH
+import os
+import re
 
 # 显式导入所有模型，确保 Base.metadata 包含全部表定义
 import app.models  # noqa: F401
@@ -50,11 +53,24 @@ app = FastAPI(
 # CORS 配置
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 允许所有来源（测试环境）
+    allow_origins=[origin.strip() for origin in os.getenv("CORS_ORIGINS", "").split(",") if origin.strip()],
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1|\[::1\])(:[0-9]+)?" if APP_ENV not in {"production", "prod"} else None,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def restrict_passwordless_to_loopback(request: Request, call_next):
+    if PASSWORDLESS_AUTH:
+        client = request.client.host if request.client else ""
+        host = request.headers.get("host", "").lower()
+        origin = request.headers.get("origin", "")
+        if (client not in {"127.0.0.1", "::1", "testclient"}
+            or not re.fullmatch(r"(?:localhost|127\.0\.0\.1|\[::1\]|testserver)(?::\d+)?", host)
+            or (origin and not re.fullmatch(r"https?://(?:localhost|127\.0\.0\.1|\[::1\])(?::\d+)?", origin))):
+            return JSONResponse(status_code=403, content={"detail": "免密开发模式仅允许本机访问。"})
+    return await call_next(request)
 
 # 注册路由
 app.include_router(auth.router, prefix="/api")
@@ -67,6 +83,8 @@ app.include_router(profile.router, prefix="/api/profile", tags=["个人资料"])
 app.include_router(notifications.router, prefix="/api/notifications", tags=["通知"])
 app.include_router(admin.router, prefix="/api/admin", tags=["管理后台"])
 app.include_router(module4.router, prefix="/api/module4", tags=["数据筛选与模型验证"])
+app.include_router(preproject_data.router, prefix="/api/preproject-data", tags=["预立项数据处理"])
+app.include_router(baseline.router, prefix="/api/baseline", tags=["轻量分类实验"])
 
 @app.get("/")
 async def root():

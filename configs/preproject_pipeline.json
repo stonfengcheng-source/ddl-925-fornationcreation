@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "pipeline_version": "0.1.0",
+  "data_subset_id": "preproject-educhat-sft-002-5k",
+  "task_id": "preproject-education-sft",
+  "version_id": "ecnu-icalk/educhat-sft-002-data-osm@289618b953588bbd1b2a6e217cdd2c53e9cbcf49",
+  "modality": "text",
+  "fixed_collected_at": null,
+  "output_dir": "data/preproject/processed",
+  "source": {
+    "enabled": true,
+    "dataset_id": "ecnu-icalk/educhat-sft-002-data-osm",
+    "source_id": "huggingface:ecnu-icalk/educhat-sft-002-data-osm",
+    "source_url": "https://huggingface.co/datasets/ecnu-icalk/educhat-sft-002-data-osm",
+    "license": "cc-by-nc-4.0",
+    "collector": "viewer_api",
+    "expected_fields": {"data": "list", "system_prompt": "str"},
+    "shuffle_buffer_size": 10000,
+    "revision": "289618b953588bbd1b2a6e217cdd2c53e9cbcf49",
+    "config": "default",
+    "split": "train",
+    "expected_row_count": 4279419,
+    "sample_count": 5000,
+    "batch_size": 100,
+    "seed": 20260924,
+    "max_page_requests": 250,
+    "timeout_seconds": 30,
+    "max_retries": 4,
+    "retry_backoff_seconds": 1,
+    "min_interval_seconds": 0.5,
+    "raw_output": "data/preproject/raw/educhat_raw_5k.jsonl",
+    "cache_dir": "data/preproject/cache"
+  },
+  "license_policy": {
+    "licenses_allowed_for_local_processing": ["cc-by-nc-4.0"],
+    "commercial_use_authorized": false,
+    "redistribution_authorized": false,
+    "note": "仅用于本地非商业研究验证；商业使用或再分发前必须核实并取得许可。"
+  },
+  "engineering_screens": {
+    "enabled": ["schema_completeness", "text_integrity", "placeholder_content", "extreme_length"],
+    "placeholders": ["待补充", "暂无内容", "无内容", "placeholder", "todo", "n/a"],
+    "max_chars": {"instruction": 20000, "output": 40000},
+    "research_algorithm_status": "待研究方案确认；这些可替换工程初筛不代表命题书中的四种研究算法"
+  },
+  "deduplication": {
+    "near_duplicate_enabled": true,
+    "near_duplicate_hamming_distance": 3,
+    "near_duplicate_min_chars": 12,
+    "near_duplicate_method": "64-bit character-trigram SimHash with four-band candidate lookup",
+    "near_duplicate_action": "review_only"
+  },
+  "privacy": {
+    "text_fields": ["instruction", "input", "output", "system"],
+    "sensitive_fields": ["phone", "mobile", "email", "id_number", "identity_number", "contact", "address"],
+    "patterns": {},
+    "replacements": {"phone": "[PHONE]", "email": "[EMAIL]", "id_number": "[ID_NUMBER]"}
+  },
+  "quality": {
+    "stale_after_days": 730,
+    "long_tail_share_threshold": 0.05,
+    "reference_distribution": null,
+    "topic_keywords": {
+      "mathematics": ["数学", "方程", "计算", "几何", "代数", "math", "equation"],
+      "programming": ["代码", "编程", "python", "javascript", "程序", "debug"],
+      "language": ["语文", "英语", "语法", "作文", "翻译", "grammar", "writing"],
+      "science": ["物理", "化学", "生物", "科学", "实验", "physics", "chemistry"]
+    }
+  }
+}

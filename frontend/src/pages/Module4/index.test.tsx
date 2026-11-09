@@ -1,12 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import Module4 from './index';
-import { getModule4Results, getModule4Status, runModule4, stopModule4 } from '@/services/api/module4';
+import { getModule4Results, getModule4Status, runModule4, stopModule4, getCandidateVersions, getModule4Preflight } from '@/services/api/module4';
 import type { Module4Status, ResultRow } from '@/services/api/module4';
 
 vi.mock('@/services/api/module4', () => ({
   getModule4Status: vi.fn(), getModule4Results: vi.fn(),
   runModule4: vi.fn(), stopModule4: vi.fn(), clearModule4Logs: vi.fn(),
+  getCandidateVersions: vi.fn(), prepareCandidateConfig: vi.fn(), getModule4Preflight: vi.fn(),
 }));
 vi.mock('antd', async (importOriginal) => ({
   ...await importOriginal<typeof import('antd')>(),
@@ -21,6 +22,7 @@ const idle: Module4Status = {
 const scoreRow = (model: string, benchmark: string, mean_score: string, metric = 'accuracy'): ResultRow => ({
   model, benchmark, mean_score, metric, runs: '1', std_score: '0', base_mean_score: '', delta_score: '',
 });
+const openTab = (name: string) => fireEvent.click(screen.getByText(name).closest('[role="tab"]')!);
 
 beforeEach(() => {
   vi.stubGlobal('ResizeObserver', class {
@@ -34,10 +36,24 @@ beforeEach(() => {
   vi.mocked(getModule4Results).mockResolvedValue({ rows: [] });
   vi.mocked(runModule4).mockResolvedValue({ message: '已启动' });
   vi.mocked(stopModule4).mockResolvedValue({ message: '已发送停止请求' });
+  vi.mocked(getCandidateVersions).mockResolvedValue({items:[]});
+  vi.mocked(getModule4Preflight).mockResolvedValue({evaluation:{ready:true,checks:[],dry_run_ready:true,score_ready:true}, training:{ready:true,checks:[]}, base_model:{ready:true,message:'ok'}});
 });
 afterEach(cleanup);
 
 describe('平台内模型验证页面', () => {
+  it('缺少评测清单时显示恢复入口并阻止评测', async () => {
+    vi.mocked(getModule4Preflight).mockResolvedValue({
+      evaluation: { ready: false, checks: [{ key: 'manifest', ready: false, message: '评测清单缺失，请先生成评测配置。' }], dry_run_ready: false, score_ready: false },
+      training: { ready: false, checks: [] }, base_model: { ready: false, message: '模型文件不存在' },
+    });
+    render(<Module4 />);
+    openTab('模型评测');
+    expect(await screen.findByText(/评测清单缺失/)).toBeInTheDocument();
+    expect(screen.getByText('开始评测').closest('button')).toBeDisabled();
+    expect(screen.getByText('生成评测配置').closest('button')).not.toBeDisabled();
+  });
+
   it('小样本结果不再显示已删除的提示', async () => {
     localStorage.setItem('module4.platform.config', JSON.stringify({ sample_count: 2000 }));
     vi.mocked(getModule4Results).mockResolvedValue({
@@ -45,6 +61,7 @@ describe('平台内模型验证页面', () => {
       metadata: { sample_count: 4 },
     });
     render(<Module4 />);
+    openTab('结果与错误样本');
     await screen.findByText('35');
     expect(screen.queryByText('这份结果来自每组 4 条的小样本测试')).not.toBeInTheDocument();
   });
@@ -56,15 +73,17 @@ describe('平台内模型验证页面', () => {
       { model: 'rule', mean_score: '80' },
     ].map(row => ({ ...row, benchmark: 'ceval_macro', metric: 'accuracy', runs: '1', std_score: '0', base_mean_score: '', delta_score: '' })) });
     render(<Module4 />);
+    openTab('结果与错误样本');
     await screen.findByText('9.5');
-    const table = within(screen.getByText('5 · 评测结果').closest('.ant-card')!);
-    const models = () => table.getAllByRole('row').slice(1).map(row => within(row).getAllByRole('cell')[0].textContent);
+    const rows = () => Array.from(screen.getByText('5 · 评测结果').closest('.ant-card')!.querySelectorAll('tbody tr.ant-table-row'));
+    const models = () => rows().map(row => row.querySelector('td')?.textContent);
     expect(models()).toEqual(['raw', 'ours', 'rule']);
-    fireEvent.click(table.getByRole('columnheader', { name: '平均分' }));
+    const header = Array.from(screen.getByText('5 · 评测结果').closest('.ant-card')!.querySelectorAll('thead th')).find((item) => item.textContent?.includes('平均分'))!;
+    fireEvent.click(header);
     expect(models()).toEqual(['ours', 'rule', 'raw']);
-    fireEvent.click(table.getByRole('columnheader', { name: '平均分' }));
+    fireEvent.click(header);
     expect(models()).toEqual(['raw', 'rule', 'ours']);
-    fireEvent.click(table.getByRole('columnheader', { name: '平均分' }));
+    fireEvent.click(header);
     expect(models()).toEqual(['raw', 'ours', 'rule']);
   });
 
@@ -79,15 +98,17 @@ describe('平台内模型验证页面', () => {
       scoreRow('base', 'base_only_project', '99.000000'),
     ] });
     render(<Module4 />);
+    openTab('结果与错误样本');
     await screen.findByText('33.581871');
-    const table = within(screen.getByText('5 · 评测结果').closest('.ant-card')!);
-    const column = (index: number) => table.getAllByRole('row').slice(1).map(row => within(row).getAllByRole('cell')[index].textContent);
+    const resultCard = screen.getByText('5 · 评测结果').closest('.ant-card')!;
+    const table = within(resultCard);
+    const column = (index: number) => Array.from(resultCard.querySelectorAll('tbody tr.ant-table-row')).map(row => row.querySelectorAll('td')[index]?.textContent);
     expect(column(1)).toEqual(['overall_macro', 'overall_macro']);
     expect(table.queryByText('99.000000')).not.toBeInTheDocument();
-    fireEvent.mouseDown(screen.getByRole('combobox', { name: '统一测评项目' }));
+    fireEvent.mouseDown(resultCard.querySelector('[aria-label="统一测评项目"]')!);
     fireEvent.click(await screen.findByText('ceval-computer_network · accuracy'));
     await waitFor(() => expect(column(1)).toEqual(['ceval-computer_network', 'ceval-computer_network']));
-    fireEvent.click(table.getByRole('columnheader', { name: '平均分' }));
+    fireEvent.click(Array.from(resultCard.querySelectorAll('thead th')).find(item => item.textContent?.includes('平均分'))!);
     expect(column(0)).toEqual(['raw', 'base']);
     expect(table.queryByText('40.000000')).not.toBeInTheDocument();
   });
@@ -101,6 +122,7 @@ describe('平台内模型验证页面', () => {
       scoreRow('raw', rawBenchmark, '60.000000', rawMetric),
     ] });
     render(<Module4 />);
+    openTab('结果与错误样本');
     await screen.findByText('暂无所有模型共同完成的测评项目，请先完成相同项目的评测。');
     expect(screen.queryByText('20.000000')).not.toBeInTheDocument();
     expect(screen.queryByText('60.000000')).not.toBeInTheDocument();
@@ -189,7 +211,7 @@ describe('平台内模型验证页面', () => {
       datajuicer_path: 'D:\\国创\\旧项目\\test_data\\datajuicer_test.jsonl', sample_count: 4,
     }));
     render(<Module4 />);
-    expect(screen.getByLabelText('原始候选数据')).toHaveValue('demo-datasets/education-synthetic/raw_5k.jsonl');
+    expect(screen.getByLabelText('原始候选数据（默认：合成演示样本）')).toHaveValue('demo-datasets/education-synthetic/raw_5k.jsonl');
     expect(screen.queryByText('当前每组 4 条，仅用于流程验证')).not.toBeInTheDocument();
     expect(screen.getByLabelText('质量评价结果')).toHaveValue('');
     expect(screen.getByLabelText('Data-Juicer 独立处理结果')).toHaveValue('');
@@ -206,6 +228,7 @@ describe('平台内模型验证页面', () => {
 
   it('统一输出上限默认 512，并将修改后的上限提交给评测配置', async () => {
     render(<Module4 />);
+    openTab('模型评测');
     const limit = screen.getByLabelText('单题最大输出长度（token）');
     expect((limit as HTMLInputElement).value).toBe('512');
     const button = screen.getByText('生成评测配置').closest('button');
@@ -218,6 +241,7 @@ describe('平台内模型验证页面', () => {
 
   it('切换快捷档位填入科目和题量，手动改题量后提交自定义配置', async () => {
     render(<Module4 />);
+    openTab('模型评测');
     expect(screen.getByText(/已选 4 科目.*最多 40 题/)).toBeInTheDocument();
     fireEvent.mouseDown(screen.getByRole('combobox', { name: '评测模式' }));
     fireEvent.click(await screen.findByText('标准测试 · 8 科目，每科最多 20 题（共最多 160 题）'));
@@ -226,7 +250,7 @@ describe('平台内模型验证页面', () => {
     fireEvent.change(screen.getByLabelText('每科最多题数'), { target: { value: '7' } });
     fireEvent.blur(screen.getByLabelText('每科最多题数'));
     expect(screen.getByRole('combobox', { name: '评测模式' }).closest('.ant-select')).toHaveTextContent('自定义 · 自选科目与题量');
-    const button = screen.getByRole('button', { name: '生成评测配置' });
+    const button = screen.getByText('生成评测配置').closest('button')!;
     await waitFor(() => expect(button).toBeEnabled());
     fireEvent.click(button);
     await waitFor(() => expect(runModule4).toHaveBeenCalledWith('make_eval_manifest', expect.objectContaining({
@@ -237,17 +261,18 @@ describe('平台内模型验证页面', () => {
 
   it('可清空后重新选择科目，并提交所选科目的全部题目', async () => {
     render(<Module4 />);
-    const button = screen.getByRole('button', { name: '生成评测配置' });
+    openTab('模型评测');
+    const button = screen.getByText('生成评测配置').closest('button')!;
     await waitFor(() => expect(button).toBeEnabled());
-    fireEvent.click(screen.getByRole('button', { name: '清空科目' }));
+    fireEvent.click(screen.getByText('清空科目').closest('button')!);
     fireEvent.click(button);
     await screen.findByText('请至少选择一个评测科目');
     expect(runModule4).not.toHaveBeenCalled();
-    fireEvent.mouseDown(screen.getByRole('combobox', { name: '评测科目' }));
-    fireEvent.change(screen.getByRole('combobox', { name: '评测科目' }), { target: { value: 'computer_network' } });
+    fireEvent.mouseDown(screen.getByLabelText('评测科目'));
+    fireEvent.change(screen.getByLabelText('评测科目'), { target: { value: 'computer_network' } });
     fireEvent.click(await screen.findByText('C-Eval · 计算机网络（computer_network）'));
-    fireEvent.keyDown(screen.getByRole('combobox', { name: '评测科目' }), { key: 'Escape', code: 'Escape' });
-    fireEvent.click(screen.getByRole('checkbox', { name: '使用所选科目的全部题目' }));
+    fireEvent.keyDown(screen.getByLabelText('评测科目'), { key: 'Escape', code: 'Escape' });
+    fireEvent.click(screen.getByLabelText('使用所选科目的全部题目'));
     expect(screen.getByLabelText('每科最多题数')).toBeDisabled();
     fireEvent.click(button);
     await waitFor(() => expect(runModule4).toHaveBeenCalledWith('make_eval_manifest', expect.objectContaining({
@@ -258,10 +283,12 @@ describe('平台内模型验证页面', () => {
   it('恢复已保存的自选科目与题量，旧版快捷档位自动补全新参数', async () => {
     localStorage.setItem('module4.platform.config', JSON.stringify({ eval_mode: 'custom', eval_subjects: ['cmmlu:education'], eval_samples_per_subject: 12 }));
     const view = render(<Module4 />);
+    openTab('模型评测');
     expect(screen.getByText(/已选 1 科目.*最多 12 题/)).toBeInTheDocument();
     view.unmount();
     localStorage.setItem('module4.platform.config', JSON.stringify({ eval_mode: 'standard' }));
     render(<Module4 />);
+    openTab('模型评测');
     expect(screen.getByText(/已选 8 科目.*最多 160 题/)).toBeInTheDocument();
   });
 
@@ -271,6 +298,7 @@ describe('平台内模型验证页面', () => {
     });
     render(<Module4 />);
     await screen.findByText('LoRA 训练');
+    openTab('训练实验');
     expect(screen.getByLabelText('任务日志')).toHaveTextContent('正在训练');
     expect(screen.getByText('开始训练').closest('button')).toBeDisabled();
     fireEvent.click(screen.getByText('停止当前任务'));

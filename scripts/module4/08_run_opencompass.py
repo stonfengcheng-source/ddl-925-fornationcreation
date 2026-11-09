@@ -105,7 +105,7 @@ def main() -> None:
 
     manifest_path = (PROJECT_ROOT / args.manifest).resolve()
     if not manifest_path.exists():
-        raise FileNotFoundError(f"评测清单不存在，请先生成评测配置：{manifest_path}")
+        raise SystemExit("评测清单不存在，请先在网页点击‘生成评测配置’，再完成环境与模型检查。")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     if manifest.get("protocol_version", 0) < 3:
         raise ValueError("评测配置尚未采用新的输出长度隔离。请重新生成评测配置并开始评测，不能直接复用旧预测。")

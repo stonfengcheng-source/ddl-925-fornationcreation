@@ -18,6 +18,9 @@ APP_ENV = os.getenv("APP_ENV", "development").lower().strip()
 AUTH_MODE = os.getenv("AUTH_MODE", "passwordless").lower().strip()
 PASSWORDLESS_AUTH = AUTH_MODE in {"passwordless", "dev", "none", "disabled"}
 SECRET_KEY = os.getenv("SECRET_KEY", "local-development-only-secret")
+if APP_ENV in {"production", "prod"}:
+    if PASSWORDLESS_AUTH or SECRET_KEY == "local-development-only-secret" or len(SECRET_KEY) < 32 or "*" in os.getenv("CORS_ORIGINS", ""):
+        raise RuntimeError("正式环境必须启用密码认证并配置至少 32 位的独立密钥。")
 JWT_ALGORITHM = "HS256"
 DEV_AUTH_USERNAME = os.getenv("DEV_AUTH_USERNAME", "admin").strip() or "admin"
 try:

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { usePermission } from '@/hooks/usePermission';
 import request from '@/services/request';
 
 interface TaskDataType {
@@ -19,6 +20,7 @@ interface TaskDataType {
 
 const TaskList: React.FC = () => {
   const navigate = useNavigate();
+  const { hasPermission, isProvider } = usePermission();
   const [data, setData] = useState<TaskDataType[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -51,21 +53,34 @@ const TaskList: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 fade-in">
-      <div className="flex items-center justify-between">
+    <div className="space-y-7 fade-in">
+      <header className="flex flex-col gap-5 rounded-2xl border border-[#dce9ff] bg-gradient-to-br from-[#eaf2ff] via-white to-white px-6 py-7 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight gradient-text">任务大厅</h2>
-          <p className="text-text-secondary mt-1">浏览可用的计算任务和联邦学习请求</p>
+          <div className="mb-2 text-xs font-semibold tracking-[0.14em] text-[#1e6fff]">TASK MARKET</div>
+          <h1 className="m-0 text-3xl font-bold tracking-tight text-[#172033]">任务大厅</h1>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-text-secondary">浏览公开的联邦学习需求。需求方可以发布任务，数据提供方可以查看匹配机会，原始数据始终留在本地。</p>
         </div>
-        <Button effect="3d" className="shadow-lg" onClick={() => navigate('/app/tasks/publish')}>发布任务</Button>
-      </div>
+        {hasPermission('task:publish') && <Button className="shrink-0" onClick={() => navigate('/app/tasks/publish')}>发布任务</Button>}
+      </header>
+
+      <section className="grid gap-3 md:grid-cols-2">
+        <button type="button" onClick={() => navigate(hasPermission('task:publish') ? '/app/tasks/publish' : '/app/my-tasks')} className="group rounded-2xl border border-[#e7edf5] bg-white p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#c7dcff] hover:shadow-[0_12px_26px_rgba(30,111,255,0.1)]">
+          <div className="mb-2 text-sm font-semibold text-[#172033]">我有一个训练需求 <span className="text-[#1e6fff] transition-transform group-hover:translate-x-1">→</span></div>
+          <p className="m-0 text-xs leading-5 text-text-secondary">发布任务、设置训练目标和奖励池，平台会协助寻找合适的数据节点。</p>
+        </button>
+        <button type="button" onClick={() => navigate(isProvider ? '/app/matching' : '/app/my-tasks')} className="group rounded-2xl border border-[#e7edf5] bg-white p-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#cdebdc] hover:shadow-[0_12px_26px_rgba(21,149,112,0.1)]">
+          <div className="mb-2 text-sm font-semibold text-[#172033]">我有可协作的数据 <span className="text-[#159570] transition-transform group-hover:translate-x-1">→</span></div>
+          <p className="m-0 text-xs leading-5 text-text-secondary">先登记数据资产，再查看推荐任务；参与训练时不需要上传原始数据。</p>
+        </button>
+      </section>
 
       {loading ? (
-        <div className="text-center py-20 text-text-secondary">加载中...</div>
+        <div className="rounded-2xl border border-border-light bg-white py-20 text-center text-text-secondary">正在加载任务...</div>
       ) : data.length === 0 ? (
-        <div className="text-center py-20">
-          <p className="text-text-secondary text-lg">暂无任务</p>
-          <p className="text-text-tertiary mt-2">点击右上角"发布任务"创建第一个联邦学习任务</p>
+        <div className="rounded-2xl border border-border-light bg-white py-20 text-center">
+          <p className="text-lg font-semibold text-[#172033]">暂时还没有公开任务</p>
+          <p className="mt-2 text-sm text-text-tertiary">如果你是需求方，可以发布第一个任务；如果你是数据方，可以先完善数据资产。</p>
+          {hasPermission('task:publish') && <Button className="mt-5" onClick={() => navigate('/app/tasks/publish')}>发布第一个任务</Button>}
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -73,13 +88,13 @@ const TaskList: React.FC = () => {
             <Card 
               key={task.key} 
               hoverEffect 
-              className="border-border/50 bg-white/80 backdrop-blur cursor-pointer"
+              className="cursor-pointer border-border-light bg-white transition-all duration-200 hover:border-[#c7dcff] hover:shadow-[0_12px_26px_rgba(30,111,255,0.1)]"
               style={{ animationDelay: `${index * 100}ms` }}
               onClick={() => navigate(`/app/tasks/${task.key}`)}
             >
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg font-medium text-text group-hover:text-accent transition-colors">
+                  <CardTitle className="text-lg font-semibold text-[#172033]">
                     {task.title}
                   </CardTitle>
                   <StatusBadge status={task.status} />
@@ -108,7 +123,7 @@ const TaskList: React.FC = () => {
                         {task.currency === 'CNY' ? '¥' : '$'}{task.budget.toLocaleString()}
                       </div>
                     </div>
-                    <Button variant="secondary" size="sm" className="hover:bg-accent hover:text-white hover:border-accent transition-all">
+                    <Button variant="secondary" size="sm" className="hover:border-accent hover:bg-accent hover:text-white transition-all">
                       查看详情
                     </Button>
                   </div>

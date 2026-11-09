@@ -22,10 +22,19 @@ def load_breast_cancer_partition(node_id: int, num_nodes: int = 2, batch_size: i
     返回: (trainloader, testloader, num_train, num_test)
     """
     path = csv_path or _DEFAULT_CSV
-    df = pd.read_csv(path)
+    if os.path.exists(path):
+        df = pd.read_csv(path)
+        X = df.drop(columns=["target"]).values.astype(np.float32)
+        y = df["target"].values.astype(np.int64)
+    else:
+        # 默认模型使用 sklearn 内置数据集兜底，避免第一次运行还要手动准备 CSV。
+        # 真实数据接入时仍可通过 csv_path 或后续节点数据目录替换这里。
+        from sklearn.datasets import load_breast_cancer
 
-    X = df.drop(columns=["target"]).values.astype(np.float32)
-    y = df["target"].values.astype(np.int64)
+        builtin = load_breast_cancer()
+        X = builtin.data.astype(np.float32)
+        y = builtin.target.astype(np.int64)
+        print(f"[节点 {node_id}] 未找到 {path}，使用 sklearn 内置乳腺癌样例数据")
 
     scaler = StandardScaler()
     X = scaler.fit_transform(X)

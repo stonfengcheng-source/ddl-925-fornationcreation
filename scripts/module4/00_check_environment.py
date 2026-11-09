@@ -38,12 +38,15 @@ def main() -> None:
     }
     cuda = {"available": False, "device_count": 0, "devices": []}
     if packages["torch"]["available"]:
-        import torch
-
-        cuda["available"] = bool(torch.cuda.is_available())
-        cuda["device_count"] = int(torch.cuda.device_count())
-        cuda["devices"] = [torch.cuda.get_device_name(index) for index in range(torch.cuda.device_count())]
-        cuda["torch_cuda_version"] = torch.version.cuda
+        try:
+            import torch
+            cuda["available"] = bool(torch.cuda.is_available())
+            cuda["device_count"] = int(torch.cuda.device_count())
+            cuda["devices"] = [torch.cuda.get_device_name(index) for index in range(torch.cuda.device_count())]
+            cuda["torch_cuda_version"] = torch.version.cuda
+        except Exception as exc:
+            packages["torch"]["available"] = False
+            cuda["import_error"] = type(exc).__name__
 
     script_dir = Path(sys.executable).resolve().parent
     llamafactory_candidates = (
@@ -79,6 +82,9 @@ def main() -> None:
                 nvidia_smi["error"] = result.stderr.strip() or f"exit={result.returncode}"
         except (OSError, subprocess.SubprocessError) as exc:
             nvidia_smi["error"] = str(exc)
+    cuda["state"] = ("not_checked_without_torch" if not packages["torch"]["available"] else
+                     "available" if cuda["available"] else "cpu_only_pytorch" if not cuda.get("torch_cuda_version") else
+                     "driver_or_runtime_unavailable")
     report = {
         "python": {
             "version": platform.python_version(),
